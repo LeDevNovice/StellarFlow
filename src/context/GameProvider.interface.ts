@@ -1,4 +1,5 @@
 import { Level } from "../models/level.model";
+import { Vessel } from "../models/vessel.model";
 
 export interface GameProviderProps {
   children: React.ReactNode;
@@ -6,6 +7,9 @@ export interface GameProviderProps {
 
 // GAMING CONTEXT ELEMENTS
 export interface GameContextProps {
-  currentLevel: Level; // The current level selected
-  setCurrentLevel: React.Dispatch<React.SetStateAction<Level>>; // Allow to change the value of the current level selected
+  vessels: Vessel[]; 
+  setVessels: React.Dispatch<React.SetStateAction<Vessel[]>>;
+  currentLevel: Level; 
+  setCurrentLevel: React.Dispatch<React.SetStateAction<Level>>; 
+  resetGameState: () => void; 
 }
