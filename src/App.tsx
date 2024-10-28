@@ -1,5 +1,12 @@
+import GameContainer from "./components/GameContainer/GameContainer"
+import { GameProvider } from "./context/GameProvider"
+
 function App() {
-  return <h1>Hello World !</h1>
+  return (
+    <GameProvider>
+      <GameContainer />
+    </GameProvider>
+  )
 }
 
 export default App
