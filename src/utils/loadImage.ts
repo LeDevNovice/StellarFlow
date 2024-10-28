@@ -1,9 +1,9 @@
-// imageAssets.ts
 import planetImageSrc from '../assets/images/planet.webp';
 import normalVesselImageSrc from '../assets/images/normalVessel.webp';
 import fastVesselImageSrc from '../assets/images/fastVessel.webp';
 import slowVesselImageSrc from '../assets/images/slowVessel.webp';
 import invisibleVesselImageSrc from '../assets/images/invisibleVessel.webp';
+import titleImageSrc from '../assets/images/title.webp'
 
 export const planetImage = new Image(50, 50);
 planetImage.src = planetImageSrc;
@@ -15,6 +15,8 @@ export const slowVesselImage = new Image(10, 10);
 slowVesselImage.src = slowVesselImageSrc;
 export const invisibleVesselImage = new Image(10, 10);
 invisibleVesselImage.src = invisibleVesselImageSrc;
+export const titleImage = new Image();
+titleImage.src = titleImageSrc;
 
 export const getVesselImage = (speedState: string): HTMLImageElement => {
   switch (speedState) {
