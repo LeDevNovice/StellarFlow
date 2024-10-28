@@ -7,6 +7,7 @@ import {
 } from "../../utils/loadImage";
 
 import { Effect } from "../../models/effect.model";
+import { FloatingText } from "../../models/floatingText.model";
 import { Level } from "../../models/level.model";
 import { Planet } from "../../models/planet.model";
 import { Point } from "../../models/point.model";
@@ -33,9 +34,12 @@ const GameCanvas = () => {
   const [isHoveringVessel, setIsHoveringVessel] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const clickEffectsRef = useRef<Effect[]>([]);
   const vesselsRef = useRef<Vessel[]>([]);
   const vesselsGenerated = useRef(0);
+  const clickEffectsRef = useRef<Effect[]>([]);
+  const successEffectsRef = useRef<Effect[]>([]);
+  const failureEffectsRef = useRef<Effect[]>([]);
+  const floatingTextsRef = useRef<FloatingText[]>([]);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -136,6 +140,45 @@ const GameCanvas = () => {
     clickEffectsRef.current.push(effect);
   };
 
+  const createSuccessEffect = (position: Point) => {
+    const effect: Effect = {
+      position: { ...position },
+      radius: 0,
+      alpha: 1,
+    };
+    successEffectsRef.current.push(effect);
+  };
+
+  const createFailureEffect = (position: Point) => {
+    const effect: Effect = {
+      position: { ...position },
+      radius: 0,
+      alpha: 1,
+    };
+    failureEffectsRef.current.push(effect);
+  };  
+
+  const createFloatingText = (position: Point, text: string, color: string) => {
+    const floatingText = {
+      position: { ...position },
+      text,
+      color,
+      alpha: 1,
+      lifespan: 1,
+    };
+    floatingTextsRef.current.push(floatingText);
+  };
+
+  const handleVesselSuccess = (vessel: Vessel) => {
+    createFloatingText(vessel.position, '+100', '#00ff00');
+    createSuccessEffect(vessel.position);
+  };
+
+  const handleVesselFailure = (vessel: Vessel) => {
+    createFloatingText(vessel.position, '-50', '#ff0000');
+    createFailureEffect(vessel.position);
+  };
+
   const handleCollisions = () => {
     const collidedVesselIds = new Set<number>();
     const collidedVessels: Vessel[] = [];
@@ -175,6 +218,11 @@ const GameCanvas = () => {
       // Update vessels
       vesselsRef.current = remainingVessels;
       setVessels([...vesselsRef.current]);
+
+      collidedVessels.forEach((vessel: Vessel) => {
+        createFloatingText(vessel.position, '-50', '#ff0000');
+        createFailureEffect(vessel.position);
+      });
     }
   };  
 
@@ -281,11 +329,13 @@ const GameCanvas = () => {
                 vessel.timeRemaining -= deltaTime;
                 if (vessel.timeRemaining <= 0) {
                     vessel.isArrived = true;
+                    handleVesselFailure(vessel);
                 }
 
                 const distanceToDestination = calculateDistance(vessel.position, vessel.destination);
                 if (distanceToDestination <= DESTINATION_RADIUS) {
                     vessel.isArrived = true;
+                    handleVesselSuccess(vessel);
                 }
 
                 vessel.path.push({ x: vessel.position.x, y: vessel.position.y });
@@ -308,6 +358,27 @@ const GameCanvas = () => {
             });
 
             handleCollisions();
+
+            // UPDATE SUCCESS EFFECTS
+            successEffectsRef.current = successEffectsRef.current.filter((effect) => {
+              effect.radius += 50 * deltaTime;
+              effect.alpha -= deltaTime * 2;
+              return effect.alpha > 0;
+            });
+
+            // UPDATE FAILURE EFFECTS
+            failureEffectsRef.current = failureEffectsRef.current.filter((effect) => {
+              effect.radius += 50 * deltaTime;
+              effect.alpha -= deltaTime * 2;
+              return effect.alpha > 0;
+            });
+
+            // UPDATE FLOATING TEXTS
+            floatingTextsRef.current = floatingTextsRef.current.filter((text: FloatingText) => {
+              text.alpha -= deltaTime / text.lifespan;
+              text.position.y -= 20 * deltaTime;
+              return text.alpha > 0;
+            });
           }
 
           // DRAWING ON CANVAS METHOD
@@ -425,6 +496,48 @@ const GameCanvas = () => {
               context.lineWidth = 2;
               context.stroke();
               context.closePath();
+            });
+
+            // DRAW SUCCESS EFFECTS
+            successEffectsRef.current.forEach((effect) => {
+              context.beginPath();
+              context.arc(
+                effect.position.x,
+                effect.position.y,
+                effect.radius,
+                0,
+                2 * Math.PI
+              );
+              context.strokeStyle = `rgba(0, 255, 0, ${effect.alpha})`;
+              context.lineWidth = 2;
+              context.stroke();
+              context.closePath();
+            });
+
+            // DRAW FAILURE EFFECTS
+            failureEffectsRef.current.forEach((effect) => {
+              context.beginPath();
+              context.arc(
+                effect.position.x,
+                effect.position.y,
+                effect.radius,
+                0,
+                2 * Math.PI
+              );
+              context.strokeStyle = `rgba(255, 0, 0, ${effect.alpha})`;
+              context.lineWidth = 2;
+              context.stroke();
+              context.closePath();
+            });
+
+            // DRAW FLOATING TEXTS
+            floatingTextsRef.current.forEach((text: FloatingText) => {
+              context.globalAlpha = text.alpha;
+              context.fillStyle = text.color;
+              context.font = 'bold 16px Arial';
+              context.textAlign = 'center';
+              context.fillText(text.text, text.position.x, text.position.y);
+              context.globalAlpha = 1;
             });
           }
 
