@@ -1,10 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import ReactDOM from 'react-dom/client';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+import App from './App';
+import './index.css';
+import { StrictMode } from 'react';
+
+const container = document.getElementById('root');
+
+if (container) {
+  const root = ReactDOM.createRoot(container);
+  root.render(
+  <StrictMode>  
     <App />
-  </StrictMode>,
-)
+  </StrictMode>);
+}
