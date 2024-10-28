@@ -13,6 +13,7 @@ import { Vessel } from "../../models/vessel.model";
 import { calculateDistance } from "../../utils/calculateDistance";
 import { calculateDirection } from "../../utils/calculateDirection";
 import { getRandomFactor } from "../../utils/getRandomFactor";
+import { checkCollision } from "../../utils/checkCollision";
 import { 
   ANIMATION_SPEED, 
   DESTINATION_RADIUS, 
@@ -150,6 +151,48 @@ const GameCanvas = () => {
     };
   };
 
+  const handleCollisions = () => {
+    const collidedVesselIds = new Set<number>();
+    const collidedVessels: Vessel[] = [];
+  
+    for (let i = 0; i < vesselsRef.current.length; i++) {
+      for (let j = i + 1; j < vesselsRef.current.length; j++) {
+        const vesselA: Vessel = vesselsRef.current[i];
+        const vesselB: Vessel = vesselsRef.current[j];
+
+        // Check if one of the vessels is in invisible state
+        if (
+          vesselA.speedState === 'invisible' ||
+          vesselB.speedState === 'invisible'
+        ) {
+          continue;
+        }
+  
+        // If the two vessels are not arrived
+        if (
+          !vesselA.isArrived &&
+          !vesselB.isArrived &&
+          checkCollision(vesselA, vesselB)
+        ) {
+          collidedVesselIds.add(vesselA.id);
+          collidedVesselIds.add(vesselB.id);
+          collidedVessels.push(vesselA, vesselB);
+        }
+      }
+    }
+  
+    if (collidedVesselIds.size > 0) {
+      // Keep the vessels that are not collided
+      const remainingVessels = vesselsRef.current.filter(
+        (vessel: Vessel) => !collidedVesselIds.has(vessel.id)
+      );
+  
+      // Update vessels
+      vesselsRef.current = remainingVessels;
+      setVessels([...vesselsRef.current]);
+    }
+  };  
+
     useEffect(() => {
         vesselsRef.current = contextVessels;
     }, [contextVessels]);
@@ -271,6 +314,8 @@ const GameCanvas = () => {
                 }
                 }
             });
+
+            handleCollisions();
           }
 
           // DRAWING ON CANVAS METHOD
