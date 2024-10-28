@@ -1,11 +1,12 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { GameContext } from "../../context/GameProvider";
-import planetImageSrc from '../../assets/images/planet.webp';
-import normalVesselImageSrc from '../../assets/images/normalVessel.webp';
-import fastVesselImageSrc from '../../assets/images/fastVessel.webp';
-import slowVesselImageSrc from '../../assets/images/slowVessel.webp';
-import invisibleVesselImageSrc from '../../assets/images/invisibleVessel.webp';
+import { 
+  planetImage, 
+  getVesselImage 
+} from "../../utils/loadImage";
+
+import { Effect } from "../../models/effect.model";
 import { Level } from "../../models/level.model";
 import { Planet } from "../../models/planet.model";
 import { Point } from "../../models/point.model";
@@ -24,34 +25,6 @@ import {
   VESSEL_PER_LEVEL} 
 from "../../utils/constants";
 
-// IMAGE LOADING
-const planetImage = new Image(50, 50);
-planetImage.src = planetImageSrc;
-const normalVesselImage = new Image(10, 10);
-normalVesselImage.src = normalVesselImageSrc;
-const fastVesselImage = new Image(10, 10);
-fastVesselImage.src = fastVesselImageSrc;
-const slowVesselImage = new Image(10, 10);
-slowVesselImage.src = slowVesselImageSrc;
-const invisibleVesselImage = new Image(10, 10);
-invisibleVesselImage.src = invisibleVesselImageSrc;
-
-// Define the right image in function of vessel speed state
-const getVesselImage = (speedState: string): HTMLImageElement => {
-    switch (speedState) {
-      case 'normal':
-        return normalVesselImage;
-      case 'slowed':
-        return slowVesselImage;
-      case 'accelerated':
-        return fastVesselImage;
-      case 'invisible':
-        return invisibleVesselImage;
-      default:
-        return normalVesselImage;
-    }
-  };
-
 const GameCanvas = () => {
   const { vessels: contextVessels, setVessels, currentLevel } = useContext(GameContext)!;
 
@@ -60,6 +33,7 @@ const GameCanvas = () => {
   const [isHoveringVessel, setIsHoveringVessel] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const clickEffectsRef = useRef<Effect[]>([]);
   const vesselsRef = useRef<Vessel[]>([]);
   const vesselsGenerated = useRef(0);
 
@@ -124,6 +98,7 @@ const GameCanvas = () => {
       }
 
       setVessels([...vesselsRef.current]);
+      createClickEffect(hoveredVessel.position);
     }
   };
 
@@ -149,6 +124,16 @@ const GameCanvas = () => {
       animationFrame: 0,
       speedState: 'normal',
     };
+  };
+
+  const createClickEffect = (position: Point) => {
+    const effect = {
+      position: { ...position },
+      radius: 0,
+      maxRadius: 15,
+      alpha: 1,
+    };
+    clickEffectsRef.current.push(effect);
   };
 
   const handleCollisions = () => {
@@ -279,7 +264,7 @@ const GameCanvas = () => {
             const deltaTime = (now - lastTime) / 1000;
             lastTime = now;
 
-            // Mise à jour des vaisseaux
+            // UPDATE VESSELS
             vesselsRef.current.forEach((vessel) => {
                 if (!vessel.isArrived) {
                 let actualVelocity = vessel.velocity;
@@ -313,6 +298,13 @@ const GameCanvas = () => {
                     vessel.animationFrame = 0;
                 }
                 }
+            });
+
+            // UPDATE CLICK EFFECTS
+            clickEffectsRef.current = clickEffectsRef.current.filter((effect) => {
+              effect.radius += 50 * deltaTime;
+              effect.alpha -= deltaTime * 2;
+              return effect.alpha > 0;
             });
 
             handleCollisions();
@@ -417,6 +409,22 @@ const GameCanvas = () => {
                       vessel.position.y - 20
                     );
                 }
+            });
+
+            // DRAW CLICK EFFECTS
+            clickEffectsRef.current.forEach((effect) => {
+              context.beginPath();
+              context.arc(
+                effect.position.x,
+                effect.position.y,
+                effect.radius,
+                0,
+                2 * Math.PI
+              );
+              context.strokeStyle = `rgba(84, 84, 84, ${effect.alpha})`;
+              context.lineWidth = 2;
+              context.stroke();
+              context.closePath();
             });
           }
 
