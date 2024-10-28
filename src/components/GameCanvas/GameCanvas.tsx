@@ -62,6 +62,7 @@ const GameCanvas = () => {
   const vesselsRef = useRef<Vessel[]>([]);
   const vesselsGenerated = useRef(0);
 
+  // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     
@@ -97,6 +98,34 @@ const GameCanvas = () => {
     }
   };
 
+  const handleCanvasClick = () => {
+    if (hoveredVessel) {
+      switch (hoveredVessel.speedState) {
+        case 'normal':
+          hoveredVessel.speedState = 'slowed';
+          break;
+        case 'slowed':
+          hoveredVessel.speedState = 'accelerated';
+          break;
+        case 'accelerated':
+          hoveredVessel.speedState = 'invisible';
+          // Define a timer to return to normal state
+          setTimeout(() => {
+            hoveredVessel.speedState = 'normal';
+            setVessels([...vesselsRef.current]);
+          }, 5000);
+          break;
+        case 'invisible':
+          hoveredVessel.speedState = 'normal';
+          break;
+        default:
+          hoveredVessel.speedState = 'normal';
+      }
+
+      setVessels([...vesselsRef.current]);
+    }
+  };
+
   const createVessel = (id: number, startPosition: Point, destination: Point): Vessel => {
     const velocity = Math.random() * (30.0 - 10.0) + 10.0 + 1.2;
     const direction = calculateDirection(startPosition, destination);
@@ -127,6 +156,7 @@ const GameCanvas = () => {
     
     useEffect(() => {
       const canvas = canvasRef.current;
+
       if (canvas) {
         canvas.style.cursor = isHoveringVessel ? 'pointer' : 'default';
       }
@@ -376,7 +406,9 @@ const GameCanvas = () => {
   return (
     <canvas 
       ref={canvasRef} 
-      onMouseMove={handleMouseMove}/>
+      onMouseMove={handleMouseMove}
+      onClick={handleCanvasClick}
+    />
   );
 }
 
