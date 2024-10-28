@@ -1,5 +1,6 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
+import { GameContext } from "../../context/GameProvider";
 import planetImageSrc from '../../assets/images/planet.webp';
 import normalVesselImageSrc from '../../assets/images/normalVessel.webp';
 import fastVesselImageSrc from '../../assets/images/fastVessel.webp';
@@ -7,20 +8,20 @@ import slowVesselImageSrc from '../../assets/images/slowVessel.webp';
 import invisibleVesselImageSrc from '../../assets/images/invisibleVessel.webp';
 import { Level } from "../../models/level.model";
 import { Planet } from "../../models/planet.model";
+import { Point } from "../../models/point.model";
 import { Vessel } from "../../models/vessel.model";
 import { calculateDistance } from "../../utils/calculateDistance";
-import { GameContext } from "../../context/GameProvider";
+import { calculateDirection } from "../../utils/calculateDirection";
+import { getRandomFactor } from "../../utils/getRandomFactor";
 import { 
   ANIMATION_SPEED, 
   DESTINATION_RADIUS, 
   MAX_TRAIL_LENGTH, 
   TOTAL_FRAMES, 
   VELOCITY_COLORS, 
+  VESSEL_CLICK_RADIUS, 
   VESSEL_PER_LEVEL} 
 from "../../utils/constants";
-import { Point } from "../../models/point.model";
-import { calculateDirection } from "../../utils/calculateDirection";
-import { getRandomFactor } from "../../utils/getRandomFactor";
 
 // IMAGE LOADING
 const planetImage = new Image(50, 50);
@@ -53,9 +54,48 @@ const getVesselImage = (speedState: string): HTMLImageElement => {
 const GameCanvas = () => {
   const { vessels: contextVessels, setVessels, currentLevel } = useContext(GameContext)!;
 
+  const [isPaused, setIsPaused] = useState(false);
+  const [hoveredVessel, setHoveredVessel] = useState<Vessel | null>(null);
+  const [isHoveringVessel, setIsHoveringVessel] = useState(false);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vesselsRef = useRef<Vessel[]>([]);
   const vesselsGenerated = useRef(0);
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+  
+      let vesselUnderMouse: Vessel | null = null;
+  
+      vesselsRef.current.forEach((vessel: Vessel) => {
+        if (!vessel.isArrived) {
+          const distanceToVessel = calculateDistance(vessel.position, { x: mouseX, y: mouseY });
+          if (distanceToVessel < VESSEL_CLICK_RADIUS) {
+            vesselUnderMouse = vessel;
+          }
+        }
+      });
+  
+      if (vesselUnderMouse) {
+        if ((hoveredVessel as Vessel)?.id !== (vesselUnderMouse as Vessel).id) {
+          setHoveredVessel(vesselUnderMouse);
+          setIsPaused(true);
+          setIsHoveringVessel(true);
+        }
+      } else {
+        if (hoveredVessel) {
+          setHoveredVessel(null);
+          setIsPaused(false);
+          setIsHoveringVessel(false);
+        }
+      }
+    }
+  };
 
   const createVessel = (id: number, startPosition: Point, destination: Point): Vessel => {
     const velocity = Math.random() * (30.0 - 10.0) + 10.0 + 1.2;
@@ -83,11 +123,18 @@ const GameCanvas = () => {
 
     useEffect(() => {
         vesselsRef.current = contextVessels;
-    }, [contextVessels]);  
+    }, [contextVessels]);
+    
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.style.cursor = isHoveringVessel ? 'pointer' : 'default';
+      }
+    }, [isHoveringVessel]);
 
     // GENERATE VESSEL
     useEffect(() => {
-        if (vesselsGenerated.current < VESSEL_PER_LEVEL) {
+        if (vesselsGenerated.current < VESSEL_PER_LEVEL && !isPaused) {
             const generateVesselForLevel = (level: Level) => {
             const id = Date.now() + Math.random();
 
@@ -122,7 +169,7 @@ const GameCanvas = () => {
             };
 
             const vesselGenerationInterval = setInterval(() => {
-            if (vesselsGenerated.current < VESSEL_PER_LEVEL) {
+            if (vesselsGenerated.current < VESSEL_PER_LEVEL && !isPaused) {
                 generateVesselForLevel(currentLevel);
                 vesselsGenerated.current += 1;
             } else {
@@ -134,7 +181,7 @@ const GameCanvas = () => {
             clearInterval(vesselGenerationInterval);
             };
         }
-    }, [currentLevel, setVessels]);
+    }, [currentLevel, setVessels, isPaused]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -299,8 +346,12 @@ const GameCanvas = () => {
           }
 
           const render = () => {
-            update();
-            draw();
+            if (!isPaused) {
+              update();
+              draw();
+            } else {
+              draw();
+            }
             animationFrameId = requestAnimationFrame(render);
           };
   
@@ -320,10 +371,12 @@ const GameCanvas = () => {
           };
         }
     }
-  })
+  }, [isPaused, currentLevel])
 
   return (
-    <canvas ref={canvasRef}/>
+    <canvas 
+      ref={canvasRef} 
+      onMouseMove={handleMouseMove}/>
   );
 }
 

@@ -3,6 +3,7 @@ export const MAX_TRAIL_LENGTH = 10000; // To have trail all along the path of th
 export const ANIMATION_SPEED = 10;
 export const TOTAL_FRAMES = 4;
 export const VESSEL_PER_LEVEL = 50;
+export const VESSEL_CLICK_RADIUS = 20;
 
 // Colors for each speed state of the vessel
 export const VELOCITY_COLORS: { [key: string]: string } = {
