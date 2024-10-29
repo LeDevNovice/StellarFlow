@@ -3,6 +3,7 @@ import { useState } from "react";
 import GameContainer from "./components/GameContainer/GameContainer"
 import HomeScreen from "./components/HomeScreen/HomeScreen";
 import { GameProvider } from "./context/GameProvider"
+import HelpScreen from "./components/HelpScreen/HelpScreen";
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'home' | 'levels' | 'help' | 'playing'>('home');
@@ -26,6 +27,7 @@ function App() {
   return (
     <GameProvider>
       {currentScreen === 'home' && <HomeScreen onPlay={handlePlay} onHelp={handleHelp} />}
+      {currentScreen === 'help' && <HelpScreen onBack={handleBackToHome} />}
       {currentScreen === 'levels' && (
         <GameContainer
           onBackToHome={handleBackToHome}
