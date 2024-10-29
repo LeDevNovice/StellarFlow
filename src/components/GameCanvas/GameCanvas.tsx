@@ -17,6 +17,7 @@ import { Point } from "../../models/point.model";
 import { Vessel } from "../../models/vessel.model";
 import { Portal } from "../../models/portal.model";
 import { EnemyVessel } from '../../models/enemy.model';
+import { Shot } from "../../models/shot.model";
 import { calculateDistance } from "../../utils/calculateDistance";
 import { calculateDirection } from "../../utils/calculateDirection";
 import { getRandomFactor } from "../../utils/getRandomFactor";
@@ -51,6 +52,7 @@ const GameCanvas = () => {
   const [isHoveringVessel, setIsHoveringVessel] = useState(false);
   const [, setPortals] = useState<Portal[]>([]);
   const [, setEnemyVessels] = useState<EnemyVessel[]>([]);
+  const [, setShots] = useState<Shot[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vesselsRef = useRef<Vessel[]>([]);
@@ -63,6 +65,8 @@ const GameCanvas = () => {
   const failedVesselsCountRef = useRef(failedVesselsCount);
   const portalsRef = useRef<Portal[]>([]);
   const enemyVesselsRef = useRef<EnemyVessel[]>([]);
+  const shotsRef = useRef<Shot[]>([]);
+  const pendingShotRef = useRef<Shot | null>(null);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -126,6 +130,14 @@ const GameCanvas = () => {
 
       setVessels([...vesselsRef.current]);
       createClickEffect(hoveredVessel.position);
+    }
+  };
+
+  const handleCanvasContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+  
+    if (hoveredVessel) {
+      prepareShotFromVessel(hoveredVessel);
     }
   };
 
@@ -381,6 +393,18 @@ const GameCanvas = () => {
     }
   };
 
+  const prepareShotFromVessel = (vessel: Vessel) => {
+    const shot: Shot = {
+      id: Date.now() + Math.random(),
+      position: { ...vessel.position },
+      velocity: 100,
+      direction: { ...vessel.direction },
+      destination: { ...vessel.destination },
+      isActive: false,
+    };
+    pendingShotRef.current = shot;
+  };
+
     useEffect(() => {
         vesselsRef.current = contextVessels;
     }, [contextVessels]);
@@ -425,6 +449,16 @@ const GameCanvas = () => {
       }, 10000);
 
       return () => clearInterval(enemyGenerationInterval);
+    }, [isPaused]);
+
+    useEffect(() => {
+      if (!isPaused && pendingShotRef.current) {
+        const shot = pendingShotRef.current;
+        shot.isActive = true;
+        shotsRef.current.push(shot);
+        setShots([...shotsRef.current]);
+        pendingShotRef.current = null;
+      }
     }, [isPaused]);
 
     // GENERATE VESSEL
@@ -626,6 +660,39 @@ const GameCanvas = () => {
                 }
               }
             });
+
+            shotsRef.current = shotsRef.current.filter((shot) => shot.isActive);
+
+            shotsRef.current.forEach((shot) => {
+              shot.position.x += shot.direction.x * shot.velocity * deltaTime;
+              shot.position.y += shot.direction.y * shot.velocity * deltaTime;
+  
+              enemyVesselsRef.current.forEach((enemyVessel) => {
+                if (enemyVessel.isDestroyed) return;
+  
+                if (checkCollisionBetweenVessels(shot, enemyVessel)) {
+                  enemyVessel.isDestroyed = true;
+                  setScore((prevScore) => prevScore + 100);
+                  createFloatingText(enemyVessel.position, '+100', '#00ff00');
+
+                  shot.isActive = false;
+                }
+              });
+  
+              const distanceToDestination = calculateDistance(shot.position, shot.destination);
+              if (distanceToDestination <= DESTINATION_RADIUS) {
+                shot.isActive = false;
+              }
+  
+              if (
+                shot.position.x < 0 || shot.position.x > canvas.width ||
+                shot.position.y < 0 || shot.position.y > canvas.height
+              ) {
+                shot.isActive = false;
+              }
+            });
+  
+            setShots([...shotsRef.current]);
           }
 
           // DRAWING ON CANVAS METHOD
@@ -822,6 +889,16 @@ const GameCanvas = () => {
               }
             });
 
+            shotsRef.current.forEach((shot) => {
+              if (shot.isActive) {
+                context.beginPath();
+                context.arc(shot.position.x, shot.position.y, 3, 0, 2 * Math.PI);
+                context.fillStyle = '#000';
+                context.fill();
+                context.closePath();
+              }
+            });
+
             // DRAW CLICK EFFECTS
             clickEffectsRef.current.forEach((effect) => {
               context.beginPath();
@@ -914,6 +991,7 @@ const GameCanvas = () => {
       ref={canvasRef} 
       onMouseMove={handleMouseMove}
       onClick={handleCanvasClick}
+      onContextMenu={handleCanvasContextMenu}
     />
   );
 }
