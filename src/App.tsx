@@ -1,27 +1,42 @@
 import { useState } from "react";
 
-import GameContainer from "./components/GameContainer/GameContainer"
-import HomeScreen from "./components/HomeScreen/HomeScreen";
-import { GameProvider } from "./context/GameProvider"
-import HelpScreen from "./components/HelpScreen/HelpScreen";
+import TransitionAnimation from './components/TransitionAnimation/TransitionAnimation';
+import GameContainer from './components/GameContainer/GameContainer';
+import HelpScreen from './components/HelpScreen/HelpScreen';
+import HomeScreen from './components/HomeScreen/HomeScreen';
+import { GameProvider } from './context/GameProvider';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<'home' | 'levels' | 'help' | 'playing'>('home');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [nextScreen, setNextScreen] = useState<'home' | 'levels' | 'help' | 'playing'>('home');
 
   const handlePlay = () => {
-    setCurrentScreen('levels');
+    setNextScreen('levels');
+    setIsTransitioning(true);
   };
 
   const handleHelp = () => {
-    setCurrentScreen('help');
+    setNextScreen('help');
+    setIsTransitioning(true);
   };
 
   const handleBackToHome = () => {
-    setCurrentScreen('home');
+    setNextScreen('home');
+    setIsTransitioning(true);
   };
 
   const handleRestartGame = () => {
-    setCurrentScreen('levels');
+    setNextScreen('levels');
+    setIsTransitioning(true);
+  };
+
+  const handleAnimationHalfway = () => {
+    setCurrentScreen(nextScreen);
+  };
+
+  const handleAnimationEnd = () => {
+    setIsTransitioning(false);
   };
 
   return (
@@ -32,6 +47,12 @@ function App() {
         <GameContainer
           onBackToHome={handleBackToHome}
           onRestartGame={handleRestartGame}
+        />
+      )}
+      {isTransitioning && (
+        <TransitionAnimation
+          onHalfway={handleAnimationHalfway}
+          onAnimationEnd={handleAnimationEnd}
         />
       )}
     </GameProvider>

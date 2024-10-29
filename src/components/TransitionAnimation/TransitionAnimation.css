@@ -1,0 +1,31 @@
+.transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.transition-triangle {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -100%;
+  transform: translateX(100%);
+  animation: triangleSlide 5s forwards;
+}
+  
+@keyframes triangleSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%); /* Le triangle couvre l'écran */
+  }
+  100% {
+    transform: translateX(100%); /* Le triangle sort par la gauche */
+  }
+}  
