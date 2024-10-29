@@ -14,10 +14,11 @@ import { Level } from "../../models/level.model";
 import { Planet } from "../../models/planet.model";
 import { Point } from "../../models/point.model";
 import { Vessel } from "../../models/vessel.model";
+import { Portal } from "../../models/portal.model";
 import { calculateDistance } from "../../utils/calculateDistance";
 import { calculateDirection } from "../../utils/calculateDirection";
 import { getRandomFactor } from "../../utils/getRandomFactor";
-import { checkCollision } from "../../utils/checkCollision";
+import { checkCollision, checkVesselPortalCollision } from "../../utils/checkCollision";
 import { 
   ANIMATION_SPEED, 
   DESTINATION_RADIUS, 
@@ -46,6 +47,7 @@ const GameCanvas = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [hoveredVessel, setHoveredVessel] = useState<Vessel | null>(null);
   const [isHoveringVessel, setIsHoveringVessel] = useState(false);
+  const [, setPortals] = useState<Portal[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vesselsRef = useRef<Vessel[]>([]);
@@ -56,6 +58,7 @@ const GameCanvas = () => {
   const floatingTextsRef = useRef<FloatingText[]>([]);
   const scoreRef = useRef(score);
   const failedVesselsCountRef = useRef(failedVesselsCount);
+  const portalsRef = useRef<Portal[]>([]);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -146,6 +149,59 @@ const GameCanvas = () => {
     };
   };
 
+  const createPortal = () => {
+    if (vesselsRef.current.length === 0) return;
+
+    // Choose a random vessel
+    const randomVesselIndex = Math.floor(Math.random() * vesselsRef.current.length);
+    const vessel = vesselsRef.current[randomVesselIndex];
+
+    let t;
+    let position;
+    let distanceToStart;
+    let distanceToEnd;
+
+    const planetRadius = 25;    
+    const portalMaxRadius = 10;  
+    const buffer = 20;
+    const minDistance = planetRadius + portalMaxRadius + buffer;
+
+    const maxAttempts = 10;
+    let attempts = 0;
+
+    do {
+      t = Math.random() * 0.8 + 0.1;
+
+      position = {
+        x: vessel.position.x + t * (vessel.destination.x - vessel.position.x),
+        y: vessel.position.y + t * (vessel.destination.y - vessel.position.y),
+      };
+
+      distanceToStart = calculateDistance(position, vessel.position);
+      distanceToEnd = calculateDistance(position, vessel.destination);
+
+      attempts++;
+      if (attempts >= maxAttempts) {
+        // If a suitable position isn't found, exit to prevent infinite loop
+        return;
+      }
+    } while (
+      distanceToStart < minDistance ||
+      distanceToEnd < minDistance
+    );
+
+    const portal: Portal = {
+      id: Date.now() + Math.random(),
+      position,
+      radius: 0,
+      maxRadius: portalMaxRadius,
+      isActive: true,
+    };
+
+    portalsRef.current.push(portal);
+    setPortals([...portalsRef.current]);
+  };
+
   const createClickEffect = (position: Point) => {
     const effect = {
       position: { ...position },
@@ -218,7 +274,7 @@ const GameCanvas = () => {
           continue;
         }
   
-        // If the two vessels are not arrived
+        // If the two vessels are not arrived, check collision
         if (
           !vesselA.isArrived &&
           !vesselB.isArrived &&
@@ -252,7 +308,27 @@ const GameCanvas = () => {
         setFailedVesselsCount((prev) => prev + 1);
       });
     }
-  };  
+  };
+  
+  const handleVesselPortalCollision = (vessel: Vessel, portal: Portal) => {
+    const pathLength = vessel.path.length;
+
+    if (pathLength > 0) {
+      const randomIndex = Math.floor(Math.random() * pathLength);
+
+      vessel.position = { ...vessel.path[randomIndex] };
+      vessel.path = vessel.path.slice(0, randomIndex + 1);
+      vessel.direction = calculateDirection(vessel.position, vessel.destination);
+
+      const distanceToDestination = calculateDistance(vessel.position, vessel.destination);
+      vessel.timeRemaining = distanceToDestination / vessel.velocity;
+
+      createFloatingText(vessel.position, 'PFFUIT !', '#800080');
+
+      portal.isActive = false;
+      setPortals([...portalsRef.current]);
+    }
+  };
 
     useEffect(() => {
         vesselsRef.current = contextVessels;
@@ -279,6 +355,16 @@ const GameCanvas = () => {
         canvas.style.cursor = isHoveringVessel ? 'pointer' : 'default';
       }
     }, [isHoveringVessel]);
+
+    useEffect(() => {
+      const portalGenerationInterval = setInterval(() => {
+        if (!isPaused) {
+          createPortal();
+        }
+      }, 10000);
+
+      return () => clearInterval(portalGenerationInterval);
+    }, [isPaused]);
 
     // GENERATE VESSEL
     useEffect(() => {
@@ -392,6 +478,17 @@ const GameCanvas = () => {
                 }
             });
 
+            // CHECK COLLISION BETWEEN VESSELS AND PORTALS
+            vesselsRef.current.forEach((vessel) => {
+              if (vessel.isArrived || vessel.speedState === 'invisible') return;
+
+              portalsRef.current.forEach((portal) => {
+                if (portal.isActive && checkVesselPortalCollision(vessel, portal)) {
+                  handleVesselPortalCollision(vessel, portal);
+                }
+              });
+            });
+
             // UPDATE CLICK EFFECTS
             clickEffectsRef.current = clickEffectsRef.current.filter((effect) => {
               effect.radius += 50 * deltaTime;
@@ -421,29 +518,36 @@ const GameCanvas = () => {
               text.position.y -= 20 * deltaTime;
               return text.alpha > 0;
             });
+
+            // UPDATE PORTALS
+            portalsRef.current = portalsRef.current.filter((portal) => {
+              if (portal.radius < portal.maxRadius) {
+                portal.radius += 10 * deltaTime;
+              } else {
+                portal.radius = portal.maxRadius;
+              }
+              return portal.isActive;
+            });
           }
 
           // DRAWING ON CANVAS METHOD
           const draw = () => {
-            context.clearRect(0, 0, canvas.width, canvas.height); // to reset canvas at each frame
+            context.clearRect(0, 0, canvas.width, canvas.height);
 
+            // DRAW SCORE LOGOS
             const currentScore = scoreRef.current;
             const currentFailedVesselsCount = failedVesselsCountRef.current;
 
-            // Draw the score and percentage in the top-right corner
             const margin = 20;
-            const logoSize = 40; // Adjust the size as needed
+            const logoSize = 40;
             const canvasWidth = canvas.width;
 
-            // Start from the rightmost position
             let xPosition = canvasWidth - margin;
 
-            // Set text properties
             context.font = '20px Arial';
             context.fillStyle = '#545454';
             context.textBaseline = 'middle';
 
-            // Draw the score text, aligned to the right
             context.textAlign = 'right';
             context.fillText(
               currentScore.toString(),
@@ -451,11 +555,9 @@ const GameCanvas = () => {
               margin + logoSize / 2
             );
 
-            // Move xPosition to the left of the score text
             const scoreTextWidth = context.measureText(currentScore.toString()).width;
             xPosition -= scoreTextWidth + 10;
 
-            // Draw the star logo
             context.drawImage(
               starLogoImage,
               xPosition - logoSize,
@@ -464,24 +566,19 @@ const GameCanvas = () => {
               logoSize
             );
 
-            // Update xPosition
             xPosition -= logoSize + 10;
 
-            // Calculate the success percentage
             const successPercentage = (((VESSEL_PER_LEVEL - currentFailedVesselsCount) / VESSEL_PER_LEVEL) * 100).toFixed(2);
 
-            // Draw the success percentage text
             context.fillText(
               successPercentage + '%',
               xPosition,
               margin + logoSize / 2
             );
 
-            // Move xPosition to the left of the percentage text
             const percentageTextWidth = context.measureText(successPercentage + '%').width;
             xPosition -= percentageTextWidth + 10;
 
-            // Draw the spaceship logo
             context.drawImage(
               spaceshipLogoImage,
               xPosition - logoSize,
@@ -490,7 +587,6 @@ const GameCanvas = () => {
               logoSize
             );
 
-            // Recalculate absolute positions in function of canvas size
             const planetsPositions = currentLevel.planets.map((planet: Planet) => ({
                 ...planet,
                 position: {
@@ -585,6 +681,23 @@ const GameCanvas = () => {
                       vessel.position.y - 20
                     );
                 }
+            });
+
+            // DRAW PORTALS
+            portalsRef.current.forEach((portal) => {
+              context.beginPath();
+              context.arc(portal.position.x, portal.position.y, portal.radius, 0, 2 * Math.PI);
+              context.strokeStyle = 'rgba(128, 0, 128, 0.7)';
+              context.lineWidth = 1;
+              context.stroke();
+              context.closePath();
+    
+              context.beginPath();
+              context.arc(portal.position.x, portal.position.y, portal.radius * 0.7, 0, 2 * Math.PI);
+              context.strokeStyle = 'rgba(75, 0, 130, 0.7)';
+              context.lineWidth = 1;
+              context.stroke();
+              context.closePath();
             });
 
             // DRAW CLICK EFFECTS
