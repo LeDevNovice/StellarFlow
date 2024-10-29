@@ -6,6 +6,7 @@ import invisibleVesselImageSrc from '../assets/images/invisibleVessel.webp';
 import titleImageSrc from '../assets/images/title.webp'
 import starLogoSrc from '../assets/images/starLogo.webp';
 import spaceshipLogoSrc from '../assets/images/spaceshipLogo.webp'
+import enemyVesselImageSrc from '../assets/images/enemyVessel.webp';
 
 export const planetImage = new Image(50, 50);
 planetImage.src = planetImageSrc;
@@ -23,6 +24,9 @@ export const starLogoImage = new Image();
 starLogoImage.src = starLogoSrc;
 export const spaceshipLogoImage = new Image();
 spaceshipLogoImage.src = spaceshipLogoSrc;
+export const enemyVesselImage = new Image(10, 10);
+enemyVesselImage.src = enemyVesselImageSrc;
+
 
 export const getVesselImage = (speedState: string): HTMLImageElement => {
   switch (speedState) {

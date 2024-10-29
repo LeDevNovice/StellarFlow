@@ -1,3 +1,4 @@
+import { Point } from "../models/point.model";
 import { Portal } from "../models/portal.model";
 import { Vessel } from "../models/vessel.model";
 import { calculateDistance } from "./calculateDistance";
@@ -17,4 +18,12 @@ export const checkVesselPortalCollision = (vessel: Vessel, portal: Portal): bool
   const distance = Math.sqrt(dx * dx + dy * dy);
 
   return distance < portal.radius; // Collision if distance is less than portal radius
+};
+
+export const checkCollisionBetweenVessels = (vesselA: { position: Point }, vesselB: { position: Point }): boolean => {
+  const dx = vesselA.position.x - vesselB.position.x;
+  const dy = vesselA.position.y - vesselB.position.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  return distance < 20;
 };

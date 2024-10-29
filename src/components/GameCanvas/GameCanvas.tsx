@@ -4,7 +4,8 @@ import { GameContext } from "../../context/GameProvider";
 import { 
   planetImage,
   starLogoImage,
-  spaceshipLogoImage, 
+  spaceshipLogoImage,
+  enemyVesselImage, 
   getVesselImage 
 } from "../../utils/loadImage";
 
@@ -15,10 +16,11 @@ import { Planet } from "../../models/planet.model";
 import { Point } from "../../models/point.model";
 import { Vessel } from "../../models/vessel.model";
 import { Portal } from "../../models/portal.model";
+import { EnemyVessel } from '../../models/enemy.model';
 import { calculateDistance } from "../../utils/calculateDistance";
 import { calculateDirection } from "../../utils/calculateDirection";
 import { getRandomFactor } from "../../utils/getRandomFactor";
-import { checkCollision, checkVesselPortalCollision } from "../../utils/checkCollision";
+import { checkCollision, checkCollisionBetweenVessels, checkVesselPortalCollision } from "../../utils/checkCollision";
 import { 
   ANIMATION_SPEED, 
   DESTINATION_RADIUS, 
@@ -48,6 +50,7 @@ const GameCanvas = () => {
   const [hoveredVessel, setHoveredVessel] = useState<Vessel | null>(null);
   const [isHoveringVessel, setIsHoveringVessel] = useState(false);
   const [, setPortals] = useState<Portal[]>([]);
+  const [, setEnemyVessels] = useState<EnemyVessel[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vesselsRef = useRef<Vessel[]>([]);
@@ -59,6 +62,7 @@ const GameCanvas = () => {
   const scoreRef = useRef(score);
   const failedVesselsCountRef = useRef(failedVesselsCount);
   const portalsRef = useRef<Portal[]>([]);
+  const enemyVesselsRef = useRef<EnemyVessel[]>([]);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -200,6 +204,53 @@ const GameCanvas = () => {
 
     portalsRef.current.push(portal);
     setPortals([...portalsRef.current]);
+  };
+
+  const createEnemyVessel = () => {
+    const id = Date.now() + Math.random();
+  
+    // Select departure and destination planets randomly
+    const level = currentLevel;
+    const departurePlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
+    let destinationPlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
+  
+    // Ensure they are different
+    while (departurePlanet.id === destinationPlanet.id && level.planets.length > 1) {
+      destinationPlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
+    }
+  
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+  
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+  
+    // Convert relative positions to absolute positions
+    const startPosition = {
+      x: departurePlanet.position.x * canvasWidth,
+      y: departurePlanet.position.y * canvasHeight,
+    };
+    const destination = {
+      x: destinationPlanet.position.x * canvasWidth,
+      y: destinationPlanet.position.y * canvasHeight,
+    };
+  
+    const velocity = Math.random() * (50 - 30) + 30; // Faster than player's vessels
+    const direction = calculateDirection(startPosition, destination);
+  
+    const enemyVessel: EnemyVessel = {
+      id,
+      position: startPosition,
+      velocity,
+      direction,
+      destination,
+      isDestroyed: false,
+      path: [],
+      animationFrame: 0,
+    };
+  
+    enemyVesselsRef.current.push(enemyVessel);
+    setEnemyVessels([...enemyVesselsRef.current]);
   };
 
   const createClickEffect = (position: Point) => {
@@ -366,6 +417,16 @@ const GameCanvas = () => {
       return () => clearInterval(portalGenerationInterval);
     }, [isPaused]);
 
+    useEffect(() => {
+      const enemyGenerationInterval = setInterval(() => {
+        if (!isPaused) {
+          createEnemyVessel();
+        }
+      }, 10000);
+
+      return () => clearInterval(enemyGenerationInterval);
+    }, [isPaused]);
+
     // GENERATE VESSEL
     useEffect(() => {
         if (vesselsGenerated.current < VESSEL_PER_LEVEL && !isPaused) {
@@ -416,6 +477,13 @@ const GameCanvas = () => {
             };
         }
     }, [currentLevel, VESSEL_PER_LEVEL, setVessels, isPaused]);
+
+    const handleEnemyPlayerCollision = (playerVessel: Vessel) => {
+      playerVessel.isArrived = true; // Destroy the player vessel
+      setFailedVesselsCount((prev) => prev + 1);
+      setScore((prevScore) => prevScore - 50);
+      createFloatingText(playerVessel.position, '-50', '#ff0000');
+    };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -527,6 +595,36 @@ const GameCanvas = () => {
                 portal.radius = portal.maxRadius;
               }
               return portal.isActive;
+            });
+
+            enemyVesselsRef.current.forEach((enemyVessel) => {
+              if (enemyVessel.isDestroyed) return;
+  
+              vesselsRef.current.forEach((playerVessel) => {
+                if (playerVessel.isArrived) return;
+  
+                if (checkCollisionBetweenVessels(enemyVessel, playerVessel)) {
+                  // Handle collision
+                  handleEnemyPlayerCollision(playerVessel);
+                }
+              });
+            });
+
+            enemyVesselsRef.current.forEach((enemyVessel) => {
+              if (!enemyVessel.isDestroyed) {
+                enemyVessel.position.x += enemyVessel.direction.x * enemyVessel.velocity * deltaTime;
+                enemyVessel.position.y += enemyVessel.direction.y * enemyVessel.velocity * deltaTime;
+  
+                enemyVessel.path.push({ x: enemyVessel.position.x, y: enemyVessel.position.y });
+                if (enemyVessel.path.length > MAX_TRAIL_LENGTH) {
+                  enemyVessel.path.shift();
+                }
+  
+                const distanceToDestination = calculateDistance(enemyVessel.position, enemyVessel.destination);
+                if (distanceToDestination <= DESTINATION_RADIUS) {
+                  enemyVessel.isDestroyed = true;
+                }
+              }
             });
           }
 
@@ -698,6 +796,30 @@ const GameCanvas = () => {
               context.lineWidth = 1;
               context.stroke();
               context.closePath();
+            });
+
+            enemyVesselsRef.current.forEach((enemyVessel) => {
+              if (!enemyVessel.isDestroyed) {
+                // Draw enemy vessel
+                const imageWidth = enemyVesselImage.width;
+                const imageHeight = enemyVesselImage.height;
+    
+                context.save();
+    
+                const angle = Math.atan2(enemyVessel.direction.y, enemyVessel.direction.x);
+                context.translate(enemyVessel.position.x, enemyVessel.position.y);
+                context.rotate(angle);
+    
+                context.drawImage(
+                  enemyVesselImage,
+                  -imageWidth / 2,
+                  -imageHeight / 2,
+                  imageWidth,
+                  imageHeight
+                );
+    
+                context.restore();
+              }
             });
 
             // DRAW CLICK EFFECTS
