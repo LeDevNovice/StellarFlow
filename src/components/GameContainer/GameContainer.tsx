@@ -6,16 +6,23 @@ import EndScreen from "../EndScreen/EndScreen";
 import { Level } from "../../models/level.model";
 import { GameContext } from "../../context/GameProvider";
 import { GameContainerProps } from "./gameContainer.interface";
+import DifficultySelector from "../DifficultySelector/DifficultySelector";
 
 function GameContainer({ onBackToHome, onRestartGame }: GameContainerProps) {
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
 
-  const { gameState, score, setCurrentLevel, setGameState } = useContext(GameContext)!;
+  const { gameState, score, setCurrentLevel, setCurrentDifficulty, setGameState } = useContext(GameContext)!;
   
   const handleLevelSelect = (level: Level) => {
     setSelectedLevel(level);
-    setCurrentLevel(level);
+  };
+
+  const handleDifficultySelect = (difficulty: number) => {
+    setSelectedDifficulty(difficulty);
+    setCurrentLevel(selectedLevel!);
+    setCurrentDifficulty(difficulty);
     setGameStarted(true);
     setGameState('playing');
   };
@@ -25,6 +32,8 @@ function GameContainer({ onBackToHome, onRestartGame }: GameContainerProps) {
       {!gameStarted ? (
         !selectedLevel ? (
           <LevelSelector onSelectLevel={handleLevelSelect} />
+        ) : !selectedDifficulty ? (
+          <DifficultySelector onSelectDifficulty={handleDifficultySelect} />
         ) : null
       ) : gameState === 'completed' ? (
         <EndScreen

@@ -11,6 +11,8 @@ export interface GameContextProps {
   setVessels: React.Dispatch<React.SetStateAction<Vessel[]>>;
   currentLevel: Level; 
   setCurrentLevel: React.Dispatch<React.SetStateAction<Level>>;
+  currentDifficulty: number;
+  setCurrentDifficulty: (difficulty: number) => void;
   score: number;
   setScore: React.Dispatch<React.SetStateAction<number>>;
   arrivedVesselsCount: number;
