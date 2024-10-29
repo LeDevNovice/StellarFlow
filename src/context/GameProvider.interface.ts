@@ -17,5 +17,9 @@ export interface GameContextProps {
   setArrivedVesselsCount: React.Dispatch<React.SetStateAction<number>>;
   failedVesselsCount: number;
   setFailedVesselsCount: React.Dispatch<React.SetStateAction<number>>;
+  totalVessels: number;
+  setTotalVessels: React.Dispatch<React.SetStateAction<number>>;
+  gameState: 'playing' | 'completed';
+  setGameState: React.Dispatch<React.SetStateAction<'playing' | 'completed'>>;
   resetGameState: () => void; 
 }

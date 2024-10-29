@@ -12,14 +12,17 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [currentLevel, setCurrentLevel] = useState<Level>(levels[0]);
   const [score, setScore] = useState(0);
+  const [totalVessels, setTotalVessels] = useState(50);
   const [arrivedVesselsCount, setArrivedVesselsCount] = useState(0);
   const [failedVesselsCount, setFailedVesselsCount] = useState(0);
+  const [gameState, setGameState] = useState<'playing' | 'completed'>('playing');
 
   const resetGameState = () => {
     setVessels([]);
     setScore(0);
     setArrivedVesselsCount(0);
     setFailedVesselsCount(0);
+    setGameState('playing');
   };
 
   return (
@@ -31,10 +34,14 @@ export const GameProvider = ({ children }: GameProviderProps) => {
         setCurrentLevel,
         score,
         setScore,
+        totalVessels,
+        setTotalVessels,
         arrivedVesselsCount,
         setArrivedVesselsCount,
         failedVesselsCount,
         setFailedVesselsCount,
+        gameState,
+        setGameState,
         resetGameState
       }}
     >

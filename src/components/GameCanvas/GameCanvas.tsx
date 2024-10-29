@@ -36,8 +36,11 @@ const GameCanvas = () => {
     score, 
     setScore,
     failedVesselsCount, 
-    setFailedVesselsCount, 
+    setFailedVesselsCount,
+    arrivedVesselsCount, 
     setArrivedVesselsCount,
+    totalVessels,
+    setGameState
   } = useContext(GameContext)!;
 
   const [isPaused, setIsPaused] = useState(false);
@@ -189,6 +192,12 @@ const GameCanvas = () => {
 
     setArrivedVesselsCount((prev) => {
       const newCount = prev + 1;
+
+      // Check if all vessels are processed
+      if (newCount + failedVesselsCount >= totalVessels) {
+        setGameState('completed');
+      }
+
       return newCount;
     });
   };
@@ -200,6 +209,12 @@ const GameCanvas = () => {
 
     setFailedVesselsCount((prev) => {
       const newCount = prev + 1;
+
+      // Check if all vessels are processed
+      if (newCount + arrivedVesselsCount >= totalVessels) {
+        setGameState('completed');
+      }
+
       return newCount;
     });
   };
