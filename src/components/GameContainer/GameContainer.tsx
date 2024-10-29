@@ -1,50 +1,28 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect } from 'react';
 
-import GameCanvas from "../GameCanvas/GameCanvas";
-import LevelSelector from "../LevelSelector/LevelSelector";
-import EndScreen from "../EndScreen/EndScreen";
-import { Level } from "../../models/level.model";
-import { GameContext } from "../../context/GameProvider";
-import { GameContainerProps } from "./gameContainer.interface";
-import DifficultySelector from "../DifficultySelector/DifficultySelector";
+import GameCanvas from '../GameCanvas/GameCanvas';
+import EndScreen from '../EndScreen/EndScreen';
+import { GameContext } from '../../context/GameProvider';
+import { GameContainerProps } from './gameContainer.interface';
 
-function GameContainer({ onBackToHome, onRestartGame }: GameContainerProps) {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
+function GameContainer({ level, difficulty, onBackToHome, onRestartGame }: GameContainerProps) {
+  const { setCurrentLevel, setCurrentDifficulty, gameState, score } = useContext(GameContext)!;
 
-  const { gameState, score, setCurrentLevel, setCurrentDifficulty, setGameState } = useContext(GameContext)!;
-  
-  const handleLevelSelect = (level: Level) => {
-    setSelectedLevel(level);
-  };
-
-  const handleDifficultySelect = (difficulty: number) => {
-    setSelectedDifficulty(difficulty);
-    setCurrentLevel(selectedLevel!);
+  useEffect(() => {
+    setCurrentLevel(level);
     setCurrentDifficulty(difficulty);
-    setGameStarted(true);
-    setGameState('playing');
-  };
+  }, [level, difficulty, setCurrentLevel, setCurrentDifficulty]);
 
   return (
     <div className="App">
-      {!gameStarted ? (
-        !selectedLevel ? (
-          <LevelSelector onSelectLevel={handleLevelSelect} />
-        ) : !selectedDifficulty ? (
-          <DifficultySelector onSelectDifficulty={handleDifficultySelect} />
-        ) : null
-      ) : gameState === 'completed' ? (
+      {gameState === 'completed' ? (
         <EndScreen
           score={score}
           onRestartGame={onRestartGame}
           onBackToHome={onBackToHome}
         />
       ) : (
-        <>
-          <GameCanvas />
-        </>
+        <GameCanvas />
       )}
     </div>
   );

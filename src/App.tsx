@@ -1,33 +1,47 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import TransitionAnimation from './components/TransitionAnimation/TransitionAnimation';
-import GameContainer from './components/GameContainer/GameContainer';
-import HelpScreen from './components/HelpScreen/HelpScreen';
 import HomeScreen from './components/HomeScreen/HomeScreen';
+import HelpScreen from './components/HelpScreen/HelpScreen';
+import GameContainer from './components/GameContainer/GameContainer';
+import LevelSelection from './components/LevelSelection/LevelSelection';
+import TransitionAnimation from './components/TransitionAnimation/TransitionAnimation';
 import { GameProvider } from './context/GameProvider';
+import { Level } from './models/level.model';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<'home' | 'levels' | 'help' | 'playing'>('home');
+  const [currentScreen, setCurrentScreen] = useState<'home' | 'level-selection' | 'help' | 'playing'>('home');
+  const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [nextScreen, setNextScreen] = useState<'home' | 'levels' | 'help' | 'playing'>('home');
+  const [nextScreen, setNextScreen] = useState<'home' | 'level-selection' | 'help' | 'playing'>('home');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<number>(1);
 
   const handlePlay = () => {
-    setNextScreen('levels');
+    setCurrentScreen('level-selection');
+    setNextScreen('level-selection');
     setIsTransitioning(true);
   };
 
   const handleHelp = () => {
+    setCurrentScreen('help');
     setNextScreen('help');
     setIsTransitioning(true);
   };
 
   const handleBackToHome = () => {
+    setCurrentScreen('home');
     setNextScreen('home');
     setIsTransitioning(true);
   };
 
+  const handleStartGame = (level: Level, difficulty: number) => {
+    setSelectedLevel(level);
+    setSelectedDifficulty(difficulty);
+    setCurrentScreen('playing');
+  };
+
   const handleRestartGame = () => {
-    setNextScreen('levels');
+    setCurrentScreen('level-selection');
+    setNextScreen('level-selection');
     setIsTransitioning(true);
   };
 
@@ -43,8 +57,11 @@ function App() {
     <GameProvider>
       {currentScreen === 'home' && <HomeScreen onPlay={handlePlay} onHelp={handleHelp} />}
       {currentScreen === 'help' && <HelpScreen onBack={handleBackToHome} />}
-      {currentScreen === 'levels' && (
+      {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} />}
+      {currentScreen === 'playing' && selectedLevel && (
         <GameContainer
+          level={selectedLevel}
+          difficulty={selectedDifficulty}
           onBackToHome={handleBackToHome}
           onRestartGame={handleRestartGame}
         />
@@ -56,7 +73,7 @@ function App() {
         />
       )}
     </GameProvider>
-  )
+  );
 }
 
-export default App
+export default App;
