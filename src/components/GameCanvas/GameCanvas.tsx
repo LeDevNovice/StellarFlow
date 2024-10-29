@@ -190,16 +190,7 @@ const GameCanvas = () => {
     createFloatingText(vessel.position, '+100', '#00ff00');
     createSuccessEffect(vessel.position);
 
-    setArrivedVesselsCount((prev) => {
-      const newCount = prev + 1;
-
-      // Check if all vessels are processed
-      if (newCount + failedVesselsCount >= totalVessels) {
-        setGameState('completed');
-      }
-
-      return newCount;
-    });
+    setArrivedVesselsCount((prev) => prev + 1);
   };
 
   const handleVesselFailure = (vessel: Vessel) => {
@@ -207,16 +198,7 @@ const GameCanvas = () => {
     createFloatingText(vessel.position, '-50', '#ff0000');
     createFailureEffect(vessel.position);
 
-    setFailedVesselsCount((prev) => {
-      const newCount = prev + 1;
-
-      // Check if all vessels are processed
-      if (newCount + arrivedVesselsCount >= totalVessels) {
-        setGameState('completed');
-      }
-
-      return newCount;
-    });
+    setFailedVesselsCount((prev) => prev + 1);
   };
 
   const handleCollisions = () => {
@@ -283,6 +265,12 @@ const GameCanvas = () => {
     useEffect(() => {
       failedVesselsCountRef.current = failedVesselsCount;
     }, [failedVesselsCount]);
+
+    useEffect(() => {
+      if (arrivedVesselsCount + failedVesselsCount >= totalVessels) {
+        setGameState('completed');
+      }
+    }, [arrivedVesselsCount, failedVesselsCount, totalVessels, setGameState]);
     
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -341,7 +329,7 @@ const GameCanvas = () => {
             clearInterval(vesselGenerationInterval);
             };
         }
-    }, [currentLevel, setVessels, isPaused]);
+    }, [currentLevel, VESSEL_PER_LEVEL, setVessels, isPaused]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

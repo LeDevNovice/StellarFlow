@@ -15,10 +15,23 @@ function App() {
     setCurrentScreen('help');
   };
 
+  const handleBackToHome = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleRestartGame = () => {
+    setCurrentScreen('levels');
+  };
+
   return (
     <GameProvider>
       {currentScreen === 'home' && <HomeScreen onPlay={handlePlay} onHelp={handleHelp} />}
-      <GameContainer />
+      {currentScreen === 'levels' && (
+        <GameContainer
+          onBackToHome={handleBackToHome}
+          onRestartGame={handleRestartGame}
+        />
+      )}
     </GameProvider>
   )
 }
