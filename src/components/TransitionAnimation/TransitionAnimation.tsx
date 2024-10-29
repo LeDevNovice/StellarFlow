@@ -6,7 +6,7 @@ interface TransitionAnimationProps {
   onHalfway: () => void;
 }
 
-const animationDuration = 5000; // Durée de l'animation en millisecondes
+const animationDuration = 5000;
 
 const TransitionAnimation: React.FC<TransitionAnimationProps> = ({ onAnimationEnd, onHalfway }) => {
   useEffect(() => {
