@@ -10,6 +10,12 @@ export interface GameContextProps {
   vessels: Vessel[]; 
   setVessels: React.Dispatch<React.SetStateAction<Vessel[]>>;
   currentLevel: Level; 
-  setCurrentLevel: React.Dispatch<React.SetStateAction<Level>>; 
+  setCurrentLevel: React.Dispatch<React.SetStateAction<Level>>;
+  score: number;
+  setScore: React.Dispatch<React.SetStateAction<number>>;
+  arrivedVesselsCount: number;
+  setArrivedVesselsCount: React.Dispatch<React.SetStateAction<number>>;
+  failedVesselsCount: number;
+  setFailedVesselsCount: React.Dispatch<React.SetStateAction<number>>;
   resetGameState: () => void; 
 }

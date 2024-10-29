@@ -2,7 +2,9 @@ import { useContext, useEffect, useRef, useState } from "react";
 
 import { GameContext } from "../../context/GameProvider";
 import { 
-  planetImage, 
+  planetImage,
+  starLogoImage,
+  spaceshipLogoImage, 
   getVesselImage 
 } from "../../utils/loadImage";
 
@@ -27,7 +29,16 @@ import {
 from "../../utils/constants";
 
 const GameCanvas = () => {
-  const { vessels: contextVessels, setVessels, currentLevel } = useContext(GameContext)!;
+  const { 
+    vessels: contextVessels, 
+    setVessels, 
+    currentLevel, 
+    score, 
+    setScore,
+    failedVesselsCount, 
+    setFailedVesselsCount, 
+    setArrivedVesselsCount,
+  } = useContext(GameContext)!;
 
   const [isPaused, setIsPaused] = useState(false);
   const [hoveredVessel, setHoveredVessel] = useState<Vessel | null>(null);
@@ -40,6 +51,8 @@ const GameCanvas = () => {
   const successEffectsRef = useRef<Effect[]>([]);
   const failureEffectsRef = useRef<Effect[]>([]);
   const floatingTextsRef = useRef<FloatingText[]>([]);
+  const scoreRef = useRef(score);
+  const failedVesselsCountRef = useRef(failedVesselsCount);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -170,13 +183,25 @@ const GameCanvas = () => {
   };
 
   const handleVesselSuccess = (vessel: Vessel) => {
+    setScore((prevScore) => prevScore + 100);
     createFloatingText(vessel.position, '+100', '#00ff00');
     createSuccessEffect(vessel.position);
+
+    setArrivedVesselsCount((prev) => {
+      const newCount = prev + 1;
+      return newCount;
+    });
   };
 
   const handleVesselFailure = (vessel: Vessel) => {
+    setScore((prevScore) => prevScore - 50);
     createFloatingText(vessel.position, '-50', '#ff0000');
     createFailureEffect(vessel.position);
+
+    setFailedVesselsCount((prev) => {
+      const newCount = prev + 1;
+      return newCount;
+    });
   };
 
   const handleCollisions = () => {
@@ -219,9 +244,15 @@ const GameCanvas = () => {
       vesselsRef.current = remainingVessels;
       setVessels([...vesselsRef.current]);
 
+      const collisionCount = collidedVesselIds.size / 2;
+      const penalty = collisionCount * 100;
+  
+      setScore((prevScore) => prevScore - penalty);
+
       collidedVessels.forEach((vessel: Vessel) => {
         createFloatingText(vessel.position, '-50', '#ff0000');
         createFailureEffect(vessel.position);
+        setFailedVesselsCount((prev) => prev + 1);
       });
     }
   };  
@@ -229,6 +260,14 @@ const GameCanvas = () => {
     useEffect(() => {
         vesselsRef.current = contextVessels;
     }, [contextVessels]);
+
+    useEffect(() => {
+      scoreRef.current = score;
+    }, [score]);
+
+    useEffect(() => {
+      failedVesselsCountRef.current = failedVesselsCount;
+    }, [failedVesselsCount]);
     
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -384,6 +423,69 @@ const GameCanvas = () => {
           // DRAWING ON CANVAS METHOD
           const draw = () => {
             context.clearRect(0, 0, canvas.width, canvas.height); // to reset canvas at each frame
+
+            const currentScore = scoreRef.current;
+            const currentFailedVesselsCount = failedVesselsCountRef.current;
+
+            // Draw the score and percentage in the top-right corner
+            const margin = 20;
+            const logoSize = 40; // Adjust the size as needed
+            const canvasWidth = canvas.width;
+
+            // Start from the rightmost position
+            let xPosition = canvasWidth - margin;
+
+            // Set text properties
+            context.font = '20px Arial';
+            context.fillStyle = '#545454';
+            context.textBaseline = 'middle';
+
+            // Draw the score text, aligned to the right
+            context.textAlign = 'right';
+            context.fillText(
+              currentScore.toString(),
+              xPosition,
+              margin + logoSize / 2
+            );
+
+            // Move xPosition to the left of the score text
+            const scoreTextWidth = context.measureText(currentScore.toString()).width;
+            xPosition -= scoreTextWidth + 10;
+
+            // Draw the star logo
+            context.drawImage(
+              starLogoImage,
+              xPosition - logoSize,
+              margin,
+              logoSize,
+              logoSize
+            );
+
+            // Update xPosition
+            xPosition -= logoSize + 10;
+
+            // Calculate the success percentage
+            const successPercentage = (((VESSEL_PER_LEVEL - currentFailedVesselsCount) / VESSEL_PER_LEVEL) * 100).toFixed(2);
+
+            // Draw the success percentage text
+            context.fillText(
+              successPercentage + '%',
+              xPosition,
+              margin + logoSize / 2
+            );
+
+            // Move xPosition to the left of the percentage text
+            const percentageTextWidth = context.measureText(successPercentage + '%').width;
+            xPosition -= percentageTextWidth + 10;
+
+            // Draw the spaceship logo
+            context.drawImage(
+              spaceshipLogoImage,
+              xPosition - logoSize,
+              margin,
+              logoSize,
+              logoSize
+            );
 
             // Recalculate absolute positions in function of canvas size
             const planetsPositions = currentLevel.planets.map((planet: Planet) => ({

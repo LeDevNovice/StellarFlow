@@ -4,6 +4,8 @@ import fastVesselImageSrc from '../assets/images/fastVessel.webp';
 import slowVesselImageSrc from '../assets/images/slowVessel.webp';
 import invisibleVesselImageSrc from '../assets/images/invisibleVessel.webp';
 import titleImageSrc from '../assets/images/title.webp'
+import starLogoSrc from '../assets/images/starLogo.webp';
+import spaceshipLogoSrc from '../assets/images/spaceshipLogo.webp'
 
 export const planetImage = new Image(50, 50);
 planetImage.src = planetImageSrc;
@@ -17,6 +19,10 @@ export const invisibleVesselImage = new Image(10, 10);
 invisibleVesselImage.src = invisibleVesselImageSrc;
 export const titleImage = new Image();
 titleImage.src = titleImageSrc;
+export const starLogoImage = new Image();
+starLogoImage.src = starLogoSrc;
+export const spaceshipLogoImage = new Image();
+spaceshipLogoImage.src = spaceshipLogoSrc;
 
 export const getVesselImage = (speedState: string): HTMLImageElement => {
   switch (speedState) {
