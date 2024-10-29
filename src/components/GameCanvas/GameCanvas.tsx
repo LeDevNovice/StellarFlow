@@ -36,7 +36,8 @@ const GameCanvas = () => {
   const { 
     vessels: contextVessels, 
     setVessels, 
-    currentLevel, 
+    currentLevel,
+    currentDifficulty, 
     score, 
     setScore,
     failedVesselsCount, 
@@ -432,24 +433,28 @@ const GameCanvas = () => {
     }, [isHoveringVessel]);
 
     useEffect(() => {
-      const portalGenerationInterval = setInterval(() => {
-        if (!isPaused) {
-          createPortal();
-        }
-      }, 10000);
-
-      return () => clearInterval(portalGenerationInterval);
-    }, [isPaused]);
+      if (currentDifficulty >= 2) {
+        const portalGenerationInterval = setInterval(() => {
+          if (!isPaused) {
+            createPortal();
+          }
+        }, 10000);
+  
+        return () => clearInterval(portalGenerationInterval);
+      }
+    }, [isPaused, currentDifficulty]);
 
     useEffect(() => {
-      const enemyGenerationInterval = setInterval(() => {
-        if (!isPaused) {
-          createEnemyVessel();
-        }
-      }, 10000);
-
-      return () => clearInterval(enemyGenerationInterval);
-    }, [isPaused]);
+      if (currentDifficulty >= 3) {
+        const enemyGenerationInterval = setInterval(() => {
+          if (!isPaused) {
+            createEnemyVessel();
+          }
+        }, 10000);
+  
+        return () => clearInterval(enemyGenerationInterval);
+      }
+    }, [isPaused, currentDifficulty]);
 
     useEffect(() => {
       if (!isPaused && pendingShotRef.current) {
@@ -622,14 +627,16 @@ const GameCanvas = () => {
             });
 
             // UPDATE PORTALS
-            portalsRef.current = portalsRef.current.filter((portal) => {
-              if (portal.radius < portal.maxRadius) {
-                portal.radius += 10 * deltaTime;
-              } else {
-                portal.radius = portal.maxRadius;
-              }
-              return portal.isActive;
-            });
+            if (currentDifficulty >= 2) {
+              portalsRef.current = portalsRef.current.filter((portal) => {
+                if (portal.radius < portal.maxRadius) {
+                  portal.radius += 10 * deltaTime;
+                } else {
+                  portal.radius = portal.maxRadius;
+                }
+                return portal.isActive;
+              });
+            }
 
             enemyVesselsRef.current.forEach((enemyVessel) => {
               if (enemyVessel.isDestroyed) return;
@@ -644,22 +651,24 @@ const GameCanvas = () => {
               });
             });
 
-            enemyVesselsRef.current.forEach((enemyVessel) => {
-              if (!enemyVessel.isDestroyed) {
-                enemyVessel.position.x += enemyVessel.direction.x * enemyVessel.velocity * deltaTime;
-                enemyVessel.position.y += enemyVessel.direction.y * enemyVessel.velocity * deltaTime;
-  
-                enemyVessel.path.push({ x: enemyVessel.position.x, y: enemyVessel.position.y });
-                if (enemyVessel.path.length > MAX_TRAIL_LENGTH) {
-                  enemyVessel.path.shift();
+            if (currentDifficulty >= 3) {
+              enemyVesselsRef.current.forEach((enemyVessel) => {
+                if (!enemyVessel.isDestroyed) {
+                  enemyVessel.position.x += enemyVessel.direction.x * enemyVessel.velocity * deltaTime;
+                  enemyVessel.position.y += enemyVessel.direction.y * enemyVessel.velocity * deltaTime;
+    
+                  enemyVessel.path.push({ x: enemyVessel.position.x, y: enemyVessel.position.y });
+                  if (enemyVessel.path.length > MAX_TRAIL_LENGTH) {
+                    enemyVessel.path.shift();
+                  }
+    
+                  const distanceToDestination = calculateDistance(enemyVessel.position, enemyVessel.destination);
+                  if (distanceToDestination <= DESTINATION_RADIUS) {
+                    enemyVessel.isDestroyed = true;
+                  }
                 }
-  
-                const distanceToDestination = calculateDistance(enemyVessel.position, enemyVessel.destination);
-                if (distanceToDestination <= DESTINATION_RADIUS) {
-                  enemyVessel.isDestroyed = true;
-                }
-              }
-            });
+              });
+            }
 
             shotsRef.current = shotsRef.current.filter((shot) => shot.isActive);
 
@@ -849,45 +858,49 @@ const GameCanvas = () => {
             });
 
             // DRAW PORTALS
-            portalsRef.current.forEach((portal) => {
-              context.beginPath();
-              context.arc(portal.position.x, portal.position.y, portal.radius, 0, 2 * Math.PI);
-              context.strokeStyle = 'rgba(128, 0, 128, 0.7)';
-              context.lineWidth = 1;
-              context.stroke();
-              context.closePath();
-    
-              context.beginPath();
-              context.arc(portal.position.x, portal.position.y, portal.radius * 0.7, 0, 2 * Math.PI);
-              context.strokeStyle = 'rgba(75, 0, 130, 0.7)';
-              context.lineWidth = 1;
-              context.stroke();
-              context.closePath();
-            });
+            if (currentDifficulty >= 2) {
+              portalsRef.current.forEach((portal) => {
+                context.beginPath();
+                context.arc(portal.position.x, portal.position.y, portal.radius, 0, 2 * Math.PI);
+                context.strokeStyle = 'rgba(128, 0, 128, 0.7)';
+                context.lineWidth = 1;
+                context.stroke();
+                context.closePath();
+      
+                context.beginPath();
+                context.arc(portal.position.x, portal.position.y, portal.radius * 0.7, 0, 2 * Math.PI);
+                context.strokeStyle = 'rgba(75, 0, 130, 0.7)';
+                context.lineWidth = 1;
+                context.stroke();
+                context.closePath();
+              });
+            }
 
-            enemyVesselsRef.current.forEach((enemyVessel) => {
-              if (!enemyVessel.isDestroyed) {
-                // Draw enemy vessel
-                const imageWidth = enemyVesselImage.width;
-                const imageHeight = enemyVesselImage.height;
-    
-                context.save();
-    
-                const angle = Math.atan2(enemyVessel.direction.y, enemyVessel.direction.x);
-                context.translate(enemyVessel.position.x, enemyVessel.position.y);
-                context.rotate(angle);
-    
-                context.drawImage(
-                  enemyVesselImage,
-                  -imageWidth / 2,
-                  -imageHeight / 2,
-                  imageWidth,
-                  imageHeight
-                );
-    
-                context.restore();
-              }
-            });
+            if (currentDifficulty >= 3) {
+              enemyVesselsRef.current.forEach((enemyVessel) => {
+                if (!enemyVessel.isDestroyed) {
+                  // Draw enemy vessel
+                  const imageWidth = enemyVesselImage.width;
+                  const imageHeight = enemyVesselImage.height;
+      
+                  context.save();
+      
+                  const angle = Math.atan2(enemyVessel.direction.y, enemyVessel.direction.x);
+                  context.translate(enemyVessel.position.x, enemyVessel.position.y);
+                  context.rotate(angle);
+      
+                  context.drawImage(
+                    enemyVesselImage,
+                    -imageWidth / 2,
+                    -imageHeight / 2,
+                    imageWidth,
+                    imageHeight
+                  );
+      
+                  context.restore();
+                }
+              });
+            }
 
             shotsRef.current.forEach((shot) => {
               if (shot.isActive) {
@@ -984,7 +997,7 @@ const GameCanvas = () => {
           };
         }
     }
-  }, [isPaused, currentLevel])
+  }, [isPaused, currentLevel, currentDifficulty]);
 
   return (
     <canvas 
