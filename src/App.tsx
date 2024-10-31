@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import TransitionAnimation from './components/TransitionAnimation/TransitionAnimation';
 import GameContainer from './components/GameContainer/GameContainer';
 import HelpScreen from './components/HelpScreen/HelpScreen';
 import HomeScreen from './components/HomeScreen/HomeScreen';
 import LevelSelection from './components/LevelSelection/LevelSelection';
-import { GameProvider } from './context/GameProvider';
+import { GameContext, GameProvider } from './context/GameProvider';
 import { Level } from './models/level.model';
 
 function App() {
@@ -14,6 +14,8 @@ function App() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [nextScreen, setNextScreen] = useState<'home' | 'level-selection' | 'help' | 'playing'>('home');
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(1);
+
+  const gameContext = useContext(GameContext); // Accès au contexte
 
   const handlePlay = () => {
     // setCurrentScreen('level-selection');
@@ -41,9 +43,8 @@ function App() {
   };
 
   const handleRestartGame = () => {
-    // setCurrentScreen('level-selection');
-    setNextScreen('level-selection');
-    setIsTransitioning(true);
+    gameContext?.resetGameState();
+    setCurrentScreen('playing');
   };
 
   const handleAnimationHalfway = () => {
