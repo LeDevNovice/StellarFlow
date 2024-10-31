@@ -407,6 +407,18 @@ const GameCanvas = () => {
   };
 
     useEffect(() => {
+      vesselsGenerated.current = 0;
+      clickEffectsRef.current = [];
+      successEffectsRef.current = [];
+      failureEffectsRef.current = [];
+      floatingTextsRef.current = [];
+      portalsRef.current = [];
+      enemyVesselsRef.current = [];
+      shotsRef.current = [];
+      pendingShotRef.current = null;
+    }, [currentLevel, currentDifficulty]);
+
+    useEffect(() => {
         vesselsRef.current = contextVessels;
     }, [contextVessels]);
 
