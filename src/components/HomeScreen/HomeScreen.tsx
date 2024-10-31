@@ -63,7 +63,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onPlay, onHelp }) => {
         y: getRandom(0, height),
       };
       const direction = calculateDirection(startPosition, destination);
-      const velocity = getRandom(25, 50);
+      const velocity = getRandom(50, 80);
       const speedState = getRandomSpeedState();
       const angle = Math.atan2(direction.y, direction.x);
       const color = getColorFromSpeedState(speedState);
@@ -122,7 +122,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onPlay, onHelp }) => {
           y: getRandom(0, height),
         };
         vessel.direction = calculateDirection(vessel.position, newDestination);
-        vessel.velocity = getRandom(25, 75);
+        vessel.velocity = getRandom(50, 90);
         vessel.speedState = getRandomSpeedState();
         vessel.color = getColorFromSpeedState(vessel.speedState);
         vessel.trail = [];
