@@ -26,11 +26,7 @@ function App() {
   useEffect(() => {
     menuAudioRef.current.loop = true;
     menuAudioRef.current.volume = 1;
-    menuAudioRef.current.autoplay = true
-
-    menuAudioRef.current.play().catch((error) => {
-      console.error('Erreur lors de la lecture de la musique de menu:', error);
-    });
+    // Removed autoplay to comply with browser policies
 
     gameAudioRef.current.loop = true;
     gameAudioRef.current.volume = 0.5;
@@ -41,6 +37,13 @@ function App() {
       gameAudioRef.current.pause();
     };
   }, []);
+
+  // Function to start menu audio
+  const startMenuAudio = () => {
+    menuAudioRef.current.play().catch((error) => {
+      console.error('Erreur lors de la lecture de la musique de menu:', error);
+    });
+  };
 
   useEffect(() => {
     const { gameState } = gameContext || {};
@@ -121,7 +124,13 @@ function App() {
 
   return (
     <GameProvider>
-      {currentScreen === 'home' && <HomeScreen onPlay={handlePlay} onHelp={handleHelp} />}
+      {currentScreen === 'home' && (
+        <HomeScreen 
+          onPlay={handlePlay} 
+          onHelp={handleHelp} 
+          startMenuAudio={startMenuAudio}
+        />
+      )}
       {currentScreen === 'help' && <HelpScreen onBack={handleBackToHome} />}
       {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} />}
       {currentScreen === 'playing' && selectedLevel && (

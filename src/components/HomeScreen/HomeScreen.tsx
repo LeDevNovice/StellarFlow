@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 import { 
   titleImage, 
@@ -12,6 +12,7 @@ import { Point } from '../../models/point.model';
 import './HomeScreen.css';
 
 interface HomeScreenProps {
+  startMenuAudio: () => void;
   onPlay: () => void;
   onHelp: () => void;
 }
@@ -28,7 +29,8 @@ interface Vessel {
   color: string;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onPlay, onHelp }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ onPlay, onHelp, startMenuAudio }) => {
+  const [hasInteracted, setHasInteracted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vesselsRef = useRef<Vessel[]>([]);
   const animationRef = useRef<number>(0);
@@ -264,15 +266,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onPlay, onHelp }) => {
     };
   }, []);
 
+  // Handle key press to reveal buttons and start audio
+  useEffect(() => {
+    const handleKeyDown = () => {
+      if (!hasInteracted) {
+        setHasInteracted(true);
+        startMenuAudio();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [hasInteracted, startMenuAudio]);
+
   return (
     <div className="home-screen">
       <canvas ref={canvasRef} className="home-canvas" />
       <div className="home-content">
         <img className='home-title' src={titleImage.src} alt="Title" />
-        <div className="home-buttons">
-          <button onClick={onPlay}>Play</button>
-          <button onClick={onHelp}>Help</button>
-        </div>
+        {!hasInteracted ? (
+          <div className="press-any-key">
+            Press any key to start...
+          </div>
+        ) : (
+          <div className="home-buttons">
+            <button onClick={onPlay}>Play</button>
+            <button onClick={onHelp}>Help</button>
+          </div>
+        )}
       </div>
     </div>
   );
