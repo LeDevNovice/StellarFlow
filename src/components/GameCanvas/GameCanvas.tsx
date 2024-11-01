@@ -4,6 +4,7 @@ import { GameContext } from "../../context/GameProvider";
 import { 
   planetImage,
   starLogoImage,
+  percentageLogoImage,
   spaceshipLogoImage,
   enemyVesselImage, 
   getVesselImage 
@@ -719,6 +720,7 @@ const GameCanvas = () => {
           // DRAWING ON CANVAS METHOD
           const draw = () => {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            const totalVesselsCount = vesselsGenerated.current; // Total vessels generated
 
             // DRAW SCORE LOGOS
             const currentScore = scoreRef.current;
@@ -733,6 +735,24 @@ const GameCanvas = () => {
             context.font = '20px Arial';
             context.fillStyle = '#545454';
             context.textBaseline = 'middle';
+
+            context.fillText(
+              totalVesselsCount.toString(),
+              xPosition,
+              margin + logoSize / 2
+            );
+            
+            xPosition -= context.measureText(totalVesselsCount.toString()).width + 10;
+            
+            context.drawImage(
+              spaceshipLogoImage,
+              xPosition - logoSize,
+              margin,
+              logoSize,
+              logoSize
+            );
+            
+            xPosition -= logoSize + 10;
 
             context.textAlign = 'right';
             context.fillText(
@@ -766,7 +786,7 @@ const GameCanvas = () => {
             xPosition -= percentageTextWidth + 10;
 
             context.drawImage(
-              spaceshipLogoImage,
+              percentageLogoImage,
               xPosition - logoSize,
               margin,
               logoSize,
