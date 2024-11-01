@@ -103,7 +103,7 @@ function App() {
         />
       )}
       {currentScreen === 'help' && <HelpScreen onBack={handleBackToHome} />}
-      {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} />}
+      {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} onBack={handleBackToHome} />}
       {currentScreen === 'playing' && selectedLevel && (
         <GameContainer
           level={selectedLevel}
