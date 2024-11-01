@@ -31,4 +31,33 @@ export const levels: Level[] = [
       { id: 5, position: { x: 0.2, y: 0.4 }, radius: 50, color: '#00aaff' },
     ],
   },
+  {
+    id: 4,
+    name: 'Circle',
+    planets: Array.from({ length: 8 }, (_, index) => {
+      const angle = (2 * Math.PI / 8) * index;
+      return {
+        id: index + 1,
+        position: { x: 0.5 + 0.3 * Math.cos(angle), y: 0.5 + 0.3 * Math.sin(angle) },
+        radius: 50,
+        color: '#00aaff',
+      };
+    }),
+  },
+  {
+    id: 5,
+    name: 'Star',
+    planets: [
+      { id: 1, position: { x: 0.5, y: 0.5 }, radius: 60, color: '#00aaff' },
+      ...Array.from({ length: 5 }, (_, index) => {
+        const angle = (2 * Math.PI / 5) * index - Math.PI / 2;
+        return {
+          id: index + 2,
+          position: { x: 0.5 + 0.3 * Math.cos(angle), y: 0.5 + 0.3 * Math.sin(angle) },
+          radius: 50,
+          color: '#00aaff',
+        };
+      }),
+    ],
+  },
 ];

@@ -1,88 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
+body {
+  font-family: 'Russo One', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
 .level-selection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #F4F2EC;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  
-  .level-selection h2 {
-    margin-bottom: 30px;
-    color: #000;
-  }
-  
-  .level-cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-  }
-  
-  .level-card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    padding: 20px;
-    text-align: center;
-    position: relative;
-  }
-  
-  .level-title {
-    margin-bottom: 15px;
-    color: #000;
-  }
-  
-  .level-thumbnail {
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 15px;
-    position: relative;
-  }
-  
-  .level-thumbnail svg {
-    width: 100%;
-    height: 150px;
-  }
-  
-  .level-thumbnail circle {
-    fill: #D3D3D3;
-  }
-  
-  .difficulty-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-  }
-  
-  .difficulty-selector button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #FFA500;
-  }
-  
-  .difficulty-selector span {
-    margin: 0 15px;
-    font-size: 18px;
-    color: #000;
-  }
-  
-  .play-button {
-    background-color: #FFA500;
-    border: none;
-    padding: 10px 20px;
-    color: #fff;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .play-button:hover {
-    background-color: #e69500;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #F4F2EC;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.level-selection h2 {
+  margin-bottom: 30px;
+  color: #000;
+}
+
+.level-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+}
+
+.level-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  width: 300px;
+  min-height: 350px;
+}
+
+.level-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.level-title {
+  margin-bottom: 15px;
+  padding-left: 15px;
+  color: #000;
+  font-family: 'Russo One', sans-serif;
+}
+
+.level-thumbnail {
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.level-thumbnail svg {
+  width: 100%;
+  height: 150px;
+}
+
+.level-thumbnail circle {
+  fill: #D3D3D3;
+}
+
+.difficulty-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.difficulty-selector button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #FFA500;
+}
+
+.difficulty-selector span {
+  margin: 0 15px;
+  font-size: 18px;
+  color: #000;
+}
+
+.play-button {
+  background-color: #FFA500;
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  border-radius: 0px 5px 5px 0px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.play-button:hover {
+  background-color: #e69500;
+}
