@@ -44,20 +44,4 @@ export const levels: Level[] = [
       };
     }),
   },
-  {
-    id: 5,
-    name: 'Star',
-    planets: [
-      { id: 1, position: { x: 0.5, y: 0.5 }, radius: 60, color: '#00aaff' },
-      ...Array.from({ length: 5 }, (_, index) => {
-        const angle = (2 * Math.PI / 5) * index - Math.PI / 2;
-        return {
-          id: index + 2,
-          position: { x: 0.5 + 0.3 * Math.cos(angle), y: 0.5 + 0.3 * Math.sin(angle) },
-          radius: 50,
-          color: '#00aaff',
-        };
-      }),
-    ],
-  },
 ];
