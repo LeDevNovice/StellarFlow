@@ -4,6 +4,7 @@ import GameCanvas from '../GameCanvas/GameCanvas';
 import EndScreen from '../EndScreen/EndScreen';
 import { GameContext } from '../../context/GameProvider';
 import { GameContainerProps } from './gameContainer.interface';
+import './GameContainer.css';
 
 function GameContainer({ level, difficulty, onBackToHome, onRestartGame }: GameContainerProps) {
   const { setCurrentLevel, setCurrentDifficulty, gameState, score } = useContext(GameContext)!;
@@ -22,7 +23,10 @@ function GameContainer({ level, difficulty, onBackToHome, onRestartGame }: GameC
           onBackToHome={onBackToHome}
         />
       ) : (
-        <GameCanvas />
+        <>
+          <GameCanvas />
+          <button className="quit-button" onClick={onBackToHome}>Quit</button>
+        </>
       )}
     </div>
   );
