@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { GameContext } from "../../context/GameProvider";
+import soundManager from "../../utils/soundManager";
 import { 
   planetImage,
   starLogoImage,
@@ -140,6 +141,7 @@ const GameCanvas = () => {
   
     if (hoveredVessel) {
       prepareShotFromVessel(hoveredVessel);
+      soundManager.shot.play();
     }
   };
 
@@ -312,6 +314,8 @@ const GameCanvas = () => {
     createSuccessEffect(vessel.position);
 
     setArrivedVesselsCount((prev) => prev + 1);
+
+    soundManager.vesselArrived.play();
   };
 
   const handleVesselFailure = (vessel: Vessel) => {
@@ -392,6 +396,8 @@ const GameCanvas = () => {
 
       portal.isActive = false;
       setPortals([...portalsRef.current]);
+
+      soundManager.bounce.play();
     }
   };
 
