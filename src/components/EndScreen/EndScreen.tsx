@@ -12,23 +12,35 @@ interface EndScreenProps {
 }
 
 const EndScreen: React.FC<EndScreenProps> = ({ score, onRestartGame, onBackToHome }) => {
-  const { arrivedVesselsCount, totalVessels, resetGameState } = useContext(GameContext)!;
+  const { 
+    arrivedVesselsCount, 
+    totalVessels, 
+    resetGameState, 
+    updateSavedScores, 
+    currentLevel, 
+    currentDifficulty 
+  } = useContext(GameContext)!;
 
-  const handleRestart = () => {
+  const percentage = ((arrivedVesselsCount / totalVessels) * 100).toFixed(2);
+
+  const handleSaveAndReset = () => {
+    updateSavedScores(currentLevel.id, currentDifficulty, score, parseFloat(percentage));
     resetGameState();
+  };
+  
+  const handleRestart = () => {
+    handleSaveAndReset();
     onRestartGame();
   };
 
   const handleBackToHome = () => {
-    resetGameState();
+    handleSaveAndReset();
     onBackToHome();
   };
 
-  const percentage = ((arrivedVesselsCount / totalVessels) * 100).toFixed(2);
-
   return (
     <div className="end-screen">
-      <h1>Partie terminée</h1>
+      <h1>Well Done !</h1>
       <div className="end-screen-stats">
         <div className="stat-item">
           <img src={spaceshipLogoSrc} alt="Vaisseau" />
