@@ -1,0 +1,16 @@
+.game-container {
+  position: relative;
+}
+  
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+  
+.back-button img {
+  width: 30px;
+  height: 30px;
+}
+  

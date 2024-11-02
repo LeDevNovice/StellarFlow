@@ -1,9 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { GameContext } from "../../context/GameProvider";
+import soundManager from "../../utils/soundManager";
 import { 
   planetImage,
   starLogoImage,
+  percentageLogoImage,
   spaceshipLogoImage,
   enemyVesselImage, 
   getVesselImage 
@@ -139,6 +141,7 @@ const GameCanvas = () => {
   
     if (hoveredVessel) {
       prepareShotFromVessel(hoveredVessel);
+      soundManager.shot.play();
     }
   };
 
@@ -311,6 +314,8 @@ const GameCanvas = () => {
     createSuccessEffect(vessel.position);
 
     setArrivedVesselsCount((prev) => prev + 1);
+
+    soundManager.vesselArrived.play();
   };
 
   const handleVesselFailure = (vessel: Vessel) => {
@@ -319,6 +324,8 @@ const GameCanvas = () => {
     createFailureEffect(vessel.position);
 
     setFailedVesselsCount((prev) => prev + 1);
+
+    soundManager.vesselFailure.play();
   };
 
   const handleCollisions = () => {
@@ -370,6 +377,8 @@ const GameCanvas = () => {
         createFloatingText(vessel.position, '-50', '#ff0000');
         createFailureEffect(vessel.position);
         setFailedVesselsCount((prev) => prev + 1);
+
+        soundManager.collision.play();
       });
     }
   };
@@ -391,6 +400,8 @@ const GameCanvas = () => {
 
       portal.isActive = false;
       setPortals([...portalsRef.current]);
+
+      soundManager.bounce.play();
     }
   };
 
@@ -534,6 +545,8 @@ const GameCanvas = () => {
       setFailedVesselsCount((prev) => prev + 1);
       setScore((prevScore) => prevScore - 50);
       createFloatingText(playerVessel.position, '-50', '#ff0000');
+
+      soundManager.collision.play();
     };
 
   useEffect(() => {
@@ -719,6 +732,7 @@ const GameCanvas = () => {
           // DRAWING ON CANVAS METHOD
           const draw = () => {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            const totalVesselsCount = vesselsGenerated.current; // Total vessels generated
 
             // DRAW SCORE LOGOS
             const currentScore = scoreRef.current;
@@ -733,6 +747,24 @@ const GameCanvas = () => {
             context.font = '20px Arial';
             context.fillStyle = '#545454';
             context.textBaseline = 'middle';
+
+            context.fillText(
+              totalVesselsCount.toString(),
+              xPosition,
+              margin + logoSize / 2
+            );
+            
+            xPosition -= context.measureText(totalVesselsCount.toString()).width + 10;
+            
+            context.drawImage(
+              spaceshipLogoImage,
+              xPosition - logoSize,
+              margin,
+              logoSize,
+              logoSize
+            );
+            
+            xPosition -= logoSize + 10;
 
             context.textAlign = 'right';
             context.fillText(
@@ -766,7 +798,7 @@ const GameCanvas = () => {
             xPosition -= percentageTextWidth + 10;
 
             context.drawImage(
-              spaceshipLogoImage,
+              percentageLogoImage,
               xPosition - logoSize,
               margin,
               logoSize,

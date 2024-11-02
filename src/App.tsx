@@ -67,6 +67,7 @@ function App() {
   const handleStartGame = (level: Level, difficulty: number) => {
     menuAudioRef.current.pause();
     menuAudioRef.current.currentTime = 0;
+    menuAudioRef.current.volume = 0.5;
 
     setSelectedLevel(level);
     setSelectedDifficulty(difficulty);
@@ -103,7 +104,7 @@ function App() {
         />
       )}
       {currentScreen === 'help' && <HelpScreen onBack={handleBackToHome} />}
-      {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} />}
+      {currentScreen === 'level-selection' && <LevelSelection onStartGame={handleStartGame} onBack={handleBackToHome} />}
       {currentScreen === 'playing' && selectedLevel && (
         <GameContainer
           level={selectedLevel}

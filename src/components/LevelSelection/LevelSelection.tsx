@@ -4,11 +4,14 @@ import { Level } from '../../models/level.model';
 import { levels } from '../../level/level';
 import './LevelSelection.css';
 
+import backIcon from '../../assets/images/backIcon.webp';
+
 interface LevelSelectionProps {
   onStartGame: (level: Level, difficulty: number) => void;
+  onBack: () => void;
 }
 
-const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame }) => {
+const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame, onBack }) => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<{ [key: number]: number }>({});
 
   const difficulties = ['Easy', 'Medium', 'Hard'];
@@ -30,6 +33,9 @@ const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame }) => {
 
   return (
     <div className="level-selection">
+      <div className="back-button" onClick={onBack}>
+        <img src={backIcon} alt="Back to Home" />
+      </div>
       <h2>Select Your Level</h2>
       <div className="level-cards">
         {levels.map((level: Level) => {

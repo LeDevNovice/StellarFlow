@@ -11,10 +11,23 @@ html, body {
   overflow: auto;
 }
 
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+
+.back-button img {
+  width: 30px;
+  height: 30px;
+}
+
 .level-selection {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   background-color: #F4F2EC;
   min-height: 100vh;
   padding: 20px;
@@ -22,6 +35,7 @@ html, body {
 }
 
 .level-selection h2 {
+  font-size: 2.5rem;
   margin-bottom: 30px;
   color: #000;
 }
