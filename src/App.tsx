@@ -67,7 +67,7 @@ function App() {
   const handleStartGame = (level: Level, difficulty: number) => {
     menuAudioRef.current.pause();
     menuAudioRef.current.currentTime = 0;
-    menuAudioRef.current.volume = 0.75;
+    menuAudioRef.current.volume = 0.5;
 
     setSelectedLevel(level);
     setSelectedDifficulty(difficulty);

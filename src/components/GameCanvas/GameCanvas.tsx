@@ -324,6 +324,8 @@ const GameCanvas = () => {
     createFailureEffect(vessel.position);
 
     setFailedVesselsCount((prev) => prev + 1);
+
+    soundManager.vesselFailure.play();
   };
 
   const handleCollisions = () => {
@@ -375,6 +377,8 @@ const GameCanvas = () => {
         createFloatingText(vessel.position, '-50', '#ff0000');
         createFailureEffect(vessel.position);
         setFailedVesselsCount((prev) => prev + 1);
+
+        soundManager.collision.play();
       });
     }
   };
@@ -541,6 +545,8 @@ const GameCanvas = () => {
       setFailedVesselsCount((prev) => prev + 1);
       setScore((prevScore) => prevScore - 50);
       createFloatingText(playerVessel.position, '-50', '#ff0000');
+
+      soundManager.collision.play();
     };
 
   useEffect(() => {
