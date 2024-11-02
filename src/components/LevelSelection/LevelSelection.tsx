@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { Level } from '../../models/level.model';
 import { levels } from '../../level/level';
 import './LevelSelection.css';
-
 import backIcon from '../../assets/images/backIcon.webp';
+import starLogoSrc from '../../assets/images/starLogo.webp';
+import percentageLogoSrc from '../../assets/images/percentageLogo.webp';
+import { GameContext } from '../../context/GameProvider';
 
 interface LevelSelectionProps {
   onStartGame: (level: Level, difficulty: number) => void;
@@ -13,7 +15,7 @@ interface LevelSelectionProps {
 
 const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame, onBack }) => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<{ [key: number]: number }>({});
-
+  const { savedScores } = useContext(GameContext)!;
   const difficulties = ['Easy', 'Medium', 'Hard'];
 
   const handleDifficultyChange = (levelId: number, direction: 'left' | 'right') => {
@@ -40,6 +42,12 @@ const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame, onBack }) 
       <div className="level-cards">
         {levels.map((level: Level) => {
           const difficultyIndex = selectedDifficulty[level.id] || 0;
+          const selectedDifficultyLevel = difficultyIndex + 1;
+          const levelSavedScores = savedScores[level.id]?.[selectedDifficultyLevel];
+
+          const score = levelSavedScores ? levelSavedScores.score : 0;
+          const percentage = levelSavedScores ? levelSavedScores.percentage : 0;
+
           return (
             <div key={level.id} className="level-card">
               <h3 className="level-title">{level.name}</h3>
@@ -61,6 +69,16 @@ const LevelSelection: React.FC<LevelSelectionProps> = ({ onStartGame, onBack }) 
                 <button onClick={() => handleDifficultyChange(level.id, 'left')}>&lt;</button>
                 <span>{difficulties[difficultyIndex]}</span>
                 <button onClick={() => handleDifficultyChange(level.id, 'right')}>&gt;</button>
+              </div>
+              <div className="saved-scores">
+                <div className="score-item">
+                  <img src={starLogoSrc} alt="Score" />
+                  <span>{score}</span>
+                </div>
+                <div className="score-item">
+                  <img src={percentageLogoSrc} alt="Percentage" />
+                  <span>{percentage}%</span>
+                </div>
               </div>
               <button
                 className="play-button"

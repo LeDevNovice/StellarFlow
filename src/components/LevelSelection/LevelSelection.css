@@ -124,3 +124,26 @@ html, body {
 .play-button:hover {
   background-color: #e69500;
 }
+
+.saved-scores {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  margin: 0 10px;
+}
+
+.score-item img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.score-item span {
+  font-size: 16px;
+  color: #000;
+}

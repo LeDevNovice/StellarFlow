@@ -5,6 +5,17 @@ export interface GameProviderProps {
   children: React.ReactNode;
 }
 
+export interface LevelScore {
+  score: number;
+  percentage: number;
+}
+
+export interface Scores {
+  [levelId: number]: {
+    [difficulty: number]: LevelScore;
+  };
+}
+
 // GAMING CONTEXT ELEMENTS
 export interface GameContextProps {
   vessels: Vessel[]; 
@@ -24,4 +35,11 @@ export interface GameContextProps {
   gameState: 'playing' | 'completed';
   setGameState: React.Dispatch<React.SetStateAction<'playing' | 'completed'>>;
   resetGameState: () => void; 
+  savedScores: Scores;
+  updateSavedScores: (
+    levelId: number,
+    difficulty: number,
+    score: number,
+    percentage: number
+  ) => void;
 }

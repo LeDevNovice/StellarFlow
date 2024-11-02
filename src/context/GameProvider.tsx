@@ -1,7 +1,7 @@
 
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
-import { GameContextProps, GameProviderProps } from "./GameProvider.interface";
+import { GameContextProps, GameProviderProps, Scores } from "./GameProvider.interface";
 import { levels } from "../level/level";
 import { Level } from "../models/level.model";
 import { Vessel } from "../models/vessel.model";
@@ -18,6 +18,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
   const [arrivedVesselsCount, setArrivedVesselsCount] = useState(0);
   const [failedVesselsCount, setFailedVesselsCount] = useState(0);
   const [gameState, setGameState] = useState<'playing' | 'completed'>('playing');
+  const [savedScores, setSavedScores] = useState<Scores>({});
 
   const resetGameState = () => {
     setVessels([]);
@@ -26,6 +27,42 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     setFailedVesselsCount(0);
     setGameState('playing');
   };
+
+    useEffect(() => {
+      const savedScoresFromStorage = localStorage.getItem('savedScores');
+      if (savedScoresFromStorage) {
+        setSavedScores(JSON.parse(savedScoresFromStorage));
+      }
+    }, []);
+  
+    const updateSavedScores = (levelId: number, difficulty: number, score: number, percentage: number) => {
+      setSavedScores((prevScores) => {
+        const updatedScores = { ...prevScores };
+        if (!updatedScores[levelId]) {
+          updatedScores[levelId] = {};
+        }
+    
+        const existingScore = updatedScores[levelId][difficulty];
+    
+        if (existingScore) {
+          const existingPercentage = existingScore.percentage;
+          const existingScoreValue = existingScore.score;
+    
+          if (
+            percentage > existingPercentage ||
+            (percentage === existingPercentage && score > existingScoreValue)
+          ) {
+            updatedScores[levelId][difficulty] = { score, percentage };
+          }
+        } else {
+          updatedScores[levelId][difficulty] = { score, percentage };
+        }
+        
+        localStorage.setItem('savedScores', JSON.stringify(updatedScores));
+    
+        return updatedScores;
+      });
+    };
 
   return (
     <GameContext.Provider
@@ -46,7 +83,9 @@ export const GameProvider = ({ children }: GameProviderProps) => {
         setFailedVesselsCount,
         gameState,
         setGameState,
-        resetGameState
+        resetGameState,
+        savedScores,
+        updateSavedScores,
       }}
     >
       {children}
