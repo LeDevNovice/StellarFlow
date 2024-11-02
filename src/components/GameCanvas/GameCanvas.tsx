@@ -107,7 +107,9 @@ const GameCanvas = () => {
     }
   };
 
-  const handleCanvasClick = () => {
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.stopPropagation();
+
     if (hoveredVessel) {
       if (hoveredVessel.invisibilityTimeoutId) {
         clearTimeout(hoveredVessel.invisibilityTimeoutId);
@@ -145,6 +147,7 @@ const GameCanvas = () => {
 
   const handleCanvasContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
+    event.stopPropagation();
   
     if (hoveredVessel) {
       prepareShotFromVessel(hoveredVessel);

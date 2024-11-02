@@ -27,9 +27,9 @@ function GameContainer({ level, difficulty, onBackToHome, onRestartGame }: GameC
       ) : (
         <>
           <GameCanvas />
-          <div className="back-button" onClick={onBackToHome}>
+          <button className="back-button" onClick={onBackToHome}>
             <img src={backIcon} alt="Back to Home" />
-          </div>
+          </button>
         </>
       )}
     </div>
