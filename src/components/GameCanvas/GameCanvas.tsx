@@ -109,6 +109,11 @@ const GameCanvas = () => {
 
   const handleCanvasClick = () => {
     if (hoveredVessel) {
+      if (hoveredVessel.invisibilityTimeoutId) {
+        clearTimeout(hoveredVessel.invisibilityTimeoutId);
+        hoveredVessel.invisibilityTimeoutId = undefined;
+      }
+  
       switch (hoveredVessel.speedState) {
         case 'normal':
           hoveredVessel.speedState = 'slowed';
@@ -118,11 +123,13 @@ const GameCanvas = () => {
           break;
         case 'accelerated':
           hoveredVessel.speedState = 'invisible';
-          // Define a timer to return to normal state
-          setTimeout(() => {
+          // eslint-disable-next-line no-case-declarations
+          const timeoutId = window.setTimeout(() => {
             hoveredVessel.speedState = 'normal';
             setVessels([...vesselsRef.current]);
+            hoveredVessel.invisibilityTimeoutId = undefined;
           }, 5000);
+          hoveredVessel.invisibilityTimeoutId = timeoutId;
           break;
         case 'invisible':
           hoveredVessel.speedState = 'normal';
@@ -130,7 +137,7 @@ const GameCanvas = () => {
         default:
           hoveredVessel.speedState = 'normal';
       }
-
+  
       setVessels([...vesselsRef.current]);
       createClickEffect(hoveredVessel.position);
     }
@@ -309,6 +316,11 @@ const GameCanvas = () => {
   };
 
   const handleVesselSuccess = (vessel: Vessel) => {
+    if (vessel.invisibilityTimeoutId) {
+      clearTimeout(vessel.invisibilityTimeoutId);
+      vessel.invisibilityTimeoutId = undefined;
+    }
+
     setScore((prevScore) => prevScore + 100);
     createFloatingText(vessel.position, '+100', '#00ff00');
     createSuccessEffect(vessel.position);
@@ -319,6 +331,11 @@ const GameCanvas = () => {
   };
 
   const handleVesselFailure = (vessel: Vessel) => {
+    if (vessel.invisibilityTimeoutId) {
+      clearTimeout(vessel.invisibilityTimeoutId);
+      vessel.invisibilityTimeoutId = undefined;
+    }
+
     setScore((prevScore) => prevScore - 50);
     createFloatingText(vessel.position, '-50', '#ff0000');
     createFailureEffect(vessel.position);

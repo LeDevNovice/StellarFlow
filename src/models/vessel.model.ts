@@ -12,5 +12,6 @@ export interface Vessel {
   totalTime: number;
   path: Point[];
   animationFrame: number;
+  invisibilityTimeoutId?: number;
   speedState: 'normal' | 'slowed' | 'accelerated' | 'invisible';
 }
