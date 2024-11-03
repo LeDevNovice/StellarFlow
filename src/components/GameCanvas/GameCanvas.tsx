@@ -20,6 +20,7 @@ import { Vessel } from "../../models/vessel.model";
 import { Portal } from "../../models/portal.model";
 import { EnemyVessel } from '../../models/enemy.model';
 import { Shot } from "../../models/shot.model";
+import { WarningIndicator } from "../../models/warning.model";
 import { calculateDistance } from "../../utils/calculateDistance";
 import { calculateDirection } from "../../utils/calculateDirection";
 import { getRandomFactor } from "../../utils/getRandomFactor";
@@ -31,7 +32,8 @@ import {
   TOTAL_FRAMES, 
   VELOCITY_COLORS, 
   VESSEL_CLICK_RADIUS, 
-  VESSEL_PER_LEVEL} 
+  VESSEL_PER_LEVEL,
+  WARNING_DURATION} 
 from "../../utils/constants";
 
 const GameCanvas = () => {
@@ -70,6 +72,7 @@ const GameCanvas = () => {
   const enemyVesselsRef = useRef<EnemyVessel[]>([]);
   const shotsRef = useRef<Shot[]>([]);
   const pendingShotRef = useRef<Shot | null>(null);
+  const warningIndicatorsRef = useRef<WarningIndicator[]>([]);
 
   // HANDLE USER EVENTS METHODS
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -447,6 +450,7 @@ const GameCanvas = () => {
       enemyVesselsRef.current = [];
       shotsRef.current = [];
       pendingShotRef.current = null;
+      warningIndicatorsRef.current = [];
     }, [currentLevel, currentDifficulty]);
 
     useEffect(() => {
@@ -512,38 +516,49 @@ const GameCanvas = () => {
     // GENERATE VESSEL
     useEffect(() => {
         if (vesselsGenerated.current < VESSEL_PER_LEVEL && !isPaused) {
-            const generateVesselForLevel = (level: Level) => {
+          const generateVesselForLevel = (level: Level) => {
             const id = Date.now() + Math.random();
-
+          
             // Select a departure planet and a different destination planet
             const departurePlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
             let destinationPlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
-
+          
             while (departurePlanet.id === destinationPlanet.id && level.planets.length > 1) {
-                destinationPlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
+              destinationPlanet = level.planets[Math.floor(Math.random() * level.planets.length)];
             }
-
+          
             const canvas = canvasRef.current;
             if (!canvas) return; // Ensure canvas is available
-
+          
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
-
+          
             // Convert relative positions to absolute positions
             const startPosition = {
-                x: departurePlanet.position.x * canvasWidth,
-                y: departurePlanet.position.y * canvasHeight,
+              x: departurePlanet.position.x * canvasWidth,
+              y: departurePlanet.position.y * canvasHeight,
             };
             const destination = {
-                x: destinationPlanet.position.x * canvasWidth,
-                y: destinationPlanet.position.y * canvasHeight,
+              x: destinationPlanet.position.x * canvasWidth,
+              y: destinationPlanet.position.y * canvasHeight,
             };
-
-            const vessel = createVessel(id, startPosition, destination);
-
-            vesselsRef.current.push(vessel);
-            setVessels([...vesselsRef.current]);
+          
+            const warningIndicator: WarningIndicator = {
+              id,
+              position: startPosition,
+              remainingTime: WARNING_DURATION,
+              totalTime: WARNING_DURATION,
             };
+            warningIndicatorsRef.current.push(warningIndicator);
+          
+            setTimeout(() => {
+              warningIndicatorsRef.current = warningIndicatorsRef.current.filter(warning => warning.id !== id);
+          
+              const vessel = createVessel(id, startPosition, destination);
+              vesselsRef.current.push(vessel);
+              setVessels([...vesselsRef.current]);
+            }, WARNING_DURATION);
+          };
 
             const vesselGenerationInterval = setInterval(() => {
             if (vesselsGenerated.current < VESSEL_PER_LEVEL && !isPaused) {
@@ -639,6 +654,11 @@ const GameCanvas = () => {
                   handleVesselPortalCollision(vessel, portal);
                 }
               });
+            });
+
+            warningIndicatorsRef.current = warningIndicatorsRef.current.filter((warning) => {
+              warning.remainingTime -= deltaTime * 1000;
+              return warning.remainingTime > 0;
             });
 
             // UPDATE CLICK EFFECTS
@@ -919,6 +939,22 @@ const GameCanvas = () => {
                       vessel.position.y - 20
                     );
                 }
+            });
+
+            warningIndicatorsRef.current.forEach((warning) => {
+              const timeFraction = warning.remainingTime / warning.totalTime;
+              const progress = 1 - timeFraction;
+              const maxRadius = 30;
+              const radius = maxRadius * progress;
+
+              const alpha = 0.5 + 0.5 * Math.sin(progress * Math.PI * 4);
+            
+              context.beginPath();
+              context.arc(warning.position.x, warning.position.y, radius, 0, 2 * Math.PI);
+              context.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+              context.lineWidth = 2;
+              context.stroke();
+              context.closePath();
             });
 
             // DRAW PORTALS
