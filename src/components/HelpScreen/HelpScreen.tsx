@@ -16,7 +16,7 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ onBack }) => {
         <section>
           <h2>Goals</h2>
           <p>
-            Manage the traffic of 50 spaceships between planets. Prevent collisions between them, portal and enemies and ensure as many vessels as possible reach their destinations within the time limit.
+            Manage the traffic of 25 spaceships between planets. Prevent collisions between them, portal and enemies and ensure as many vessels as possible reach their destinations within the time limit.
           </p>
         </section>
 
@@ -70,13 +70,13 @@ const HelpScreen: React.FC<HelpScreenProps> = ({ onBack }) => {
             <h2>Difficulty Levels</h2>
             <ul>
               <li>
-                <strong>Easy:</strong> Manage your 50 ships without portals or enemy ships.
+                <strong>Easy:</strong> Manage your 25 ships without portals or enemy ships.
               </li>
               <li>
                 <strong>Medium:</strong> Portals are introduced, adding complexity to ship management.
               </li>
               <li>
-                <strong>Hard:</strong> Enemy ships appear, requiring anihilations actions to protect your 50 ships.
+                <strong>Hard:</strong> Enemy ships appear, requiring anihilations actions to protect your 25 ships.
               </li>
             </ul>
 

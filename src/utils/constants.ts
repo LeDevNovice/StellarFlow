@@ -2,7 +2,7 @@ export const DESTINATION_RADIUS = 25;
 export const MAX_TRAIL_LENGTH = 10000; // To have trail all along the path of the vessel
 export const ANIMATION_SPEED = 10;
 export const TOTAL_FRAMES = 4;
-export const VESSEL_PER_LEVEL = 50;
+export const VESSEL_PER_LEVEL = 25;
 export const VESSEL_CLICK_RADIUS = 20;
 export const WARNING_DURATION = 2000;
 
