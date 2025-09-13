@@ -5,7 +5,6 @@ import path from 'path';
 
 export default defineConfig({
     plugins: [react(), tailwindcss()],
-    base: '/StellarFlow/',
     build: {
         outDir: 'docs',
         rollupOptions: {
