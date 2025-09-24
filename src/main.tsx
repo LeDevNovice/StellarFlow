@@ -4,7 +4,7 @@ import React from 'react';
 
 import { router } from './router';
 
-import './styles/globals.css';
+import './styles/index.css';
 
 const container = document.getElementById('root');
 
